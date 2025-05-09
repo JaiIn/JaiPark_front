@@ -12,6 +12,10 @@ const Mypage = () => {
     const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
     const [myComments, setMyComments] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [showAllMyPosts, setShowAllMyPosts] = useState(false);
+    const [showAllMyComments, setShowAllMyComments] = useState(false);
+    const [showAllLikedPosts, setShowAllLikedPosts] = useState(false);
+    const [showAllBookmarkedPosts, setShowAllBookmarkedPosts] = useState(false);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -63,6 +67,12 @@ const Mypage = () => {
                         <h1 className="text-3xl font-extrabold text-black mb-1">{user.name || user.username}</h1>
                         <div className="text-black font-semibold">@{user.username}</div>
                         <div className="text-black font-semibold">{user.email}</div>
+                        <button
+                            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 font-bold"
+                            onClick={() => navigate('/mypage/edit')}
+                        >
+                            내 정보 수정
+                        </button>
                     </div>
                 </section>
 
@@ -74,8 +84,9 @@ const Mypage = () => {
                         {myPosts.length === 0 ? (
                             <p className="text-black font-semibold">작성한 게시글이 없습니다.</p>
                         ) : (
+                            <>
                             <ul className="divide-y divide-neutral-200">
-                                {myPosts.slice(0, 5).map(post => (
+                                {(showAllMyPosts ? myPosts : myPosts.slice(0, 3)).map(post => (
                                     <li key={post.id} className="py-3 hover:bg-neutral-100 rounded-lg transition">
                                         <a href={`/posts/${post.id}`} className="block">
                                             <div className="font-bold text-black">{post.title}</div>
@@ -84,6 +95,15 @@ const Mypage = () => {
                                     </li>
                                 ))}
                             </ul>
+                            {myPosts.length > 3 && (
+                                <button
+                                    className="mt-2 text-blue-500 hover:underline"
+                                    onClick={() => setShowAllMyPosts(!showAllMyPosts)}
+                                >
+                                    {showAllMyPosts ? '접기' : '더보기'}
+                                </button>
+                            )}
+                            </>
                         )}
                     </div>
                     {/* 내가 쓴 댓글 */}
@@ -92,8 +112,9 @@ const Mypage = () => {
                         {myComments.length === 0 ? (
                             <p className="text-black font-semibold">작성한 댓글이 없습니다.</p>
                         ) : (
+                            <>
                             <ul className="divide-y divide-neutral-200">
-                                {myComments.slice(0, 5).map(comment => (
+                                {(showAllMyComments ? myComments : myComments.slice(0, 3)).map(comment => (
                                     <li
                                         key={comment.id}
                                         className="py-3 hover:bg-neutral-100 rounded-lg transition cursor-pointer"
@@ -106,6 +127,15 @@ const Mypage = () => {
                                     </li>
                                 ))}
                             </ul>
+                            {myComments.length > 3 && (
+                                <button
+                                    className="mt-2 text-blue-500 hover:underline"
+                                    onClick={() => setShowAllMyComments(!showAllMyComments)}
+                                >
+                                    {showAllMyComments ? '접기' : '더보기'}
+                                </button>
+                            )}
+                            </>
                         )}
                     </div>
                     {/* 좋아요한 글 */}
@@ -114,8 +144,9 @@ const Mypage = () => {
                         {likedPosts.length === 0 ? (
                             <p className="text-black font-semibold">좋아요한 게시글이 없습니다.</p>
                         ) : (
+                            <>
                             <ul className="divide-y divide-neutral-200">
-                                {likedPosts.slice(0, 5).map(post => (
+                                {(showAllLikedPosts ? likedPosts : likedPosts.slice(0, 3)).map(post => (
                                     <li key={post.id} className="py-3 hover:bg-neutral-100 rounded-lg transition">
                                         <a href={`/posts/${post.id}`} className="block">
                                             <div className="font-bold text-black">{post.title}</div>
@@ -124,6 +155,15 @@ const Mypage = () => {
                                     </li>
                                 ))}
                             </ul>
+                            {likedPosts.length > 3 && (
+                                <button
+                                    className="mt-2 text-blue-500 hover:underline"
+                                    onClick={() => setShowAllLikedPosts(!showAllLikedPosts)}
+                                >
+                                    {showAllLikedPosts ? '접기' : '더보기'}
+                                </button>
+                            )}
+                            </>
                         )}
                     </div>
                     {/* 북마크한 글 */}
@@ -132,8 +172,9 @@ const Mypage = () => {
                         {bookmarkedPosts.length === 0 ? (
                             <p className="text-black font-semibold">북마크한 게시글이 없습니다.</p>
                         ) : (
+                            <>
                             <ul className="divide-y divide-neutral-200">
-                                {bookmarkedPosts.slice(0, 5).map(post => (
+                                {(showAllBookmarkedPosts ? bookmarkedPosts : bookmarkedPosts.slice(0, 3)).map(post => (
                                     <li key={post.id} className="py-3 hover:bg-neutral-100 rounded-lg transition">
                                         <a href={`/posts/${post.id}`} className="block">
                                             <div className="font-bold text-black">{post.title}</div>
@@ -142,6 +183,15 @@ const Mypage = () => {
                                     </li>
                                 ))}
                             </ul>
+                            {bookmarkedPosts.length > 3 && (
+                                <button
+                                    className="mt-2 text-blue-500 hover:underline"
+                                    onClick={() => setShowAllBookmarkedPosts(!showAllBookmarkedPosts)}
+                                >
+                                    {showAllBookmarkedPosts ? '접기' : '더보기'}
+                                </button>
+                            )}
+                            </>
                         )}
                     </div>
                 </section>

@@ -7,6 +7,9 @@ import Signup from '../pages/Signup';
 import PostList from '../pages/PostList';
 import PostDetail from '../pages/PostDetail';
 import PostForm from '../pages/PostForm';
+import EditProfile from '../pages/EditProfile';
+import UserProfile from '../pages/UserProfile';
+import Home from '../pages/Home';
 
 // 보호된 라우트 컴포넌트
 const PrivateRoute = ({ children }) => {
@@ -25,7 +28,15 @@ const AppRoutes = () => {
         <Routes>
             <Route
                 path="/"
-                element={<Navigate to="/mypage" replace />}
+                element={<Navigate to="/home" replace />}
+            />
+            <Route
+                path="/home"
+                element={
+                    <PrivateRoute>
+                        <Home />
+                    </PrivateRoute>
+                }
             />
             <Route
                 path="/mypage"
@@ -68,6 +79,18 @@ const AppRoutes = () => {
                         <PostForm />
                     </PrivateRoute>
                 }
+            />
+            <Route
+                path="/mypage/edit"
+                element={
+                    <PrivateRoute>
+                        <EditProfile />
+                    </PrivateRoute>
+                }
+            />
+            <Route
+                path="/profile/:username"
+                element={<UserProfile />}
             />
         </Routes>
     );

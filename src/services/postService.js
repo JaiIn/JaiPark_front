@@ -93,5 +93,12 @@ export const postService = {
         const token = localStorage.getItem('token');
         const response = await postApi.getBookmarkedPosts(username, token);
         return response.data;
+    },
+
+    // 팔로우한 사람들의 게시글 조회
+    getFollowingsPosts: async () => {
+        const token = localStorage.getItem('token');
+        const response = await postApi.getFollowingsPosts(token);
+        return response.data;
     }
 }; 

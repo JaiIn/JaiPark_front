@@ -65,5 +65,10 @@ export const postApi = {
     // 게시글 검색
     searchPosts: (keyword, page = 0, size = 10) => {
         return axios.get(`${API_URL}/posts/search?keyword=${keyword}&page=${page}&size=${size}`);
+    },
+
+    // 팔로잉한 게시글 조회
+    getFollowingsPosts: (token) => {
+        return axios.get(`${API_URL}/posts/followings`, getAuthHeader(token));
     }
 }; 

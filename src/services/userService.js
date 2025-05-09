@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { userApi } from '../api/userApi';
 
 const API_URL = 'http://localhost:8080/api';
 
@@ -30,5 +31,47 @@ export const userService = {
             headers: { Authorization: `Bearer ${token}` }
         });
         return response.data;
+    },
+    getMe: async () => {
+        const token = localStorage.getItem('token');
+        const res = await userApi.getMe(token);
+        return res.data;
+    },
+    updateMe: async (data) => {
+        const token = localStorage.getItem('token');
+        const res = await userApi.updateMe(data, token);
+        return res.data;
+    },
+    changePassword: async (data) => {
+        const token = localStorage.getItem('token');
+        await userApi.changePassword(data, token);
+    },
+    getUserProfile: async (username) => {
+        const token = localStorage.getItem('token');
+        const res = await userApi.getUserProfile(username, token);
+        return res.data;
+    },
+    follow: async (username) => {
+        const token = localStorage.getItem('token');
+        await userApi.follow(username, token);
+    },
+    unfollow: async (username) => {
+        const token = localStorage.getItem('token');
+        await userApi.unfollow(username, token);
+    },
+    getFollowing: async (username) => {
+        const token = localStorage.getItem('token');
+        const res = await userApi.getFollowing(username, token);
+        return res.data;
+    },
+    getFollowers: async (username) => {
+        const token = localStorage.getItem('token');
+        const res = await userApi.getFollowers(username, token);
+        return res.data;
+    },
+    getFollowStatus: async (username) => {
+        const token = localStorage.getItem('token');
+        const res = await userApi.getFollowStatus(username, token);
+        return res.data;
     },
 }; 
