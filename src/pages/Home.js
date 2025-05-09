@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { postService } from '../services/postService';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Home = () => {
   const { isAuthenticated } = useAuth();
@@ -30,17 +30,20 @@ const Home = () => {
       {posts.length === 0 ? (
         <div className="text-center py-8 text-black">게시글이 없습니다.</div>
       ) : (
-        <ul className="divide-y divide-neutral-200">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {posts.map(post => (
-            <li key={post.id} className="py-3 hover:bg-neutral-100 rounded-lg transition">
-              <a href={`/posts/${post.id}`} className="block">
-                <div className="font-bold text-black">{post.title}</div>
-                <div className="text-sm text-black mt-1">{post.content}</div>
-                <div className="text-xs text-gray-500 mt-1">작성자: {post.username}</div>
-              </a>
-            </li>
+            <div key={post.id} className="bg-white shadow-md rounded-lg p-6 flex flex-col justify-between hover:shadow-lg transition">
+              <Link to={`/posts/${post.id}`} className="text-primary-700 hover:text-primary-900 font-bold text-xl mb-2 transition-colors">
+                {post.title}
+              </Link>
+              <div className="text-sm text-black mb-2 line-clamp-2">{post.content}</div>
+              <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+                <span>작성자: {post.username}</span>
+                <span>{post.createdAt ? new Date(post.createdAt).toLocaleDateString() : ''}</span>
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );
