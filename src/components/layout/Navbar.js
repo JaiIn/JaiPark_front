@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { FaSearch } from 'react-icons/fa';
+import NotificationDropdown from './NotificationDropdown';
 
 const Navbar = () => {
     const { isAuthenticated, logout, user } = useAuth();
@@ -56,6 +57,7 @@ const Navbar = () => {
                                 >
                                     로그아웃
                                 </button>
+                                {isAuthenticated && <NotificationDropdown />}
                             </>
                         ) : (
                             <>
