@@ -117,10 +117,10 @@ const Mypage = () => {
                 {showFollowers && (
                     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
                         <div className="bg-white rounded-xl p-6 w-80 max-h-[60vh] overflow-y-auto">
-                            <h3 className="text-lg font-bold mb-4">팔로워 목록</h3>
+                            <h3 className="text-black font-bold mb-4">팔로워 목록</h3>
                             <ul>
                                 {(user.followers || []).map(f => (
-                                    <li key={f.username} className="py-2 border-b last:border-b-0">{f.nickname || f.username}</li>
+                                    <li key={f.username} className="py-2 border-b last:border-b-0 text-black">{f.nickname || f.username}</li>
                                 ))}
                             </ul>
                             <button className="mt-4 w-full py-2 bg-gray-200 rounded hover:bg-gray-300" onClick={() => setShowFollowers(false)}>닫기</button>
@@ -130,10 +130,10 @@ const Mypage = () => {
                 {showFollowings && (
                     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
                         <div className="bg-white rounded-xl p-6 w-80 max-h-[60vh] overflow-y-auto">
-                            <h3 className="text-lg font-bold mb-4">팔로잉 목록</h3>
+                            <h3 className="text-black font-bold mb-4">팔로잉 목록</h3>
                             <ul>
                                 {(user.followings || []).map(f => (
-                                    <li key={f.username} className="py-2 border-b last:border-b-0">{f.nickname || f.username}</li>
+                                    <li key={f.username} className="py-2 border-b last:border-b-0 text-black">{f.nickname || f.username}</li>
                                 ))}
                             </ul>
                             <button className="mt-4 w-full py-2 bg-gray-200 rounded hover:bg-gray-300" onClick={() => setShowFollowings(false)}>닫기</button>
