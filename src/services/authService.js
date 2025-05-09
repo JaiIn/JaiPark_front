@@ -12,9 +12,9 @@ export const authService = {
         }
     },
 
-    signup: async (username, email, password) => {
+    signup: async (userData) => {
         try {
-            const response = await axios.post(`${API_URL}/signup`, { username, email, password });
+            const response = await axios.post(`${API_URL}/signup`, userData);
             return response.data;
         } catch (error) {
             if (error.response?.status === 400) {

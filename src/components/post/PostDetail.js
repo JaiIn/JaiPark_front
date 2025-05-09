@@ -14,7 +14,7 @@ const PostDetail = ({ post, onDelete, onLike, onBookmark, isLiked, isBookmarked 
                 <div>
                     <h1 className="modern-heading-1">{post.title}</h1>
                     <div className="flex items-center space-x-4 mt-2" style={{ color: 'var(--text-secondary)' }}>
-                        <span>작성자: {post.author}</span>
+                        <span>작성자: {post.author?.nickname || post.author?.username || post.author}</span>
                         <span>작성일: {new Date(post.createdAt).toLocaleDateString()}</span>
                         <span>조회수: {post.viewCount}</span>
                     </div>

@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { postService } from '../services/postService';
 import { commentService } from '../services/commentService';
+import { userService } from '../services/userService';
 
 const Mypage = () => {
-    const { user, isAuthenticated } = useAuth();
+    const { user, isAuthenticated, setUser } = useAuth();
     const navigate = useNavigate();
     const [myPosts, setMyPosts] = useState([]);
     const [likedPosts, setLikedPosts] = useState([]);
@@ -16,6 +17,9 @@ const Mypage = () => {
     const [showAllMyComments, setShowAllMyComments] = useState(false);
     const [showAllLikedPosts, setShowAllLikedPosts] = useState(false);
     const [showAllBookmarkedPosts, setShowAllBookmarkedPosts] = useState(false);
+    const [error, setError] = useState(null);
+    const [showFollowers, setShowFollowers] = useState(false);
+    const [showFollowings, setShowFollowings] = useState(false);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -23,30 +27,55 @@ const Mypage = () => {
             return;
         }
 
-        const fetchUserData = async () => {
+        // 내 정보 최신화
+        const fetchUserInfo = async () => {
             try {
+                const userInfo = await userService.getMe();
+                if (userInfo) {
+                    setUser(userInfo);
+                }
+            } catch (e) {}
+        };
+        fetchUserInfo();
+
+        const fetchUserData = async () => {
+            if (!user?.username) return;
+
+            try {
+                setIsLoading(true);
                 const [posts, liked, bookmarked, comments] = await Promise.all([
                     postService.getPostsByUsername(user.username),
                     postService.getLikedPosts(user.username),
                     postService.getBookmarkedPosts(user.username),
-                    commentService.getMyComments()
+                    commentService.getCommentsByUsername(user.username)
                 ]);
                 setMyPosts(posts);
                 setLikedPosts(liked);
                 setBookmarkedPosts(bookmarked);
                 setMyComments(comments);
             } catch (error) {
-                console.error('사용자 데이터를 불러오는데 실패했습니다:', error);
+                console.error('Error fetching user data:', error);
+                setError('데이터를 불러오는데 실패했습니다.');
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchUserData();
-    }, [isAuthenticated, user, navigate]);
+        if (user?.username) {
+            fetchUserData();
+        }
+    }, [isAuthenticated, navigate, user]);
+
+    if (!user) {
+        return <div className="text-center py-8 text-black text-lg font-bold">사용자 정보를 불러오는 중...</div>;
+    }
 
     if (isLoading) {
         return <div className="text-center py-8 text-black text-lg font-bold">로딩 중...</div>;
+    }
+
+    if (error) {
+        return <div className="text-center py-8 text-red-500">{error}</div>;
     }
 
     return (
@@ -64,9 +93,17 @@ const Mypage = () => {
                         )}
                     </div>
                     <div>
-                        <h1 className="text-3xl font-extrabold text-black mb-1">{user.name || user.username}</h1>
-                        <div className="text-black font-semibold">@{user.username}</div>
-                        <div className="text-black font-semibold">{user.email}</div>
+                        <div className="text-3xl font-extrabold text-black mb-1">닉네임: {user.nickname}</div>
+                        <div className="text-black font-semibold">아이디: {user.username}</div>
+                        <div className="text-black font-semibold">이메일: {user.email}</div>
+                        <div className="flex gap-6 mt-2">
+                            <button className="text-blue-600 font-bold hover:underline" onClick={() => setShowFollowers(true)}>
+                                팔로워 {user.followerCount ?? (user.followers ? user.followers.length : 0)}
+                            </button>
+                            <button className="text-blue-600 font-bold hover:underline" onClick={() => setShowFollowings(true)}>
+                                팔로잉 {user.followingCount ?? (user.followings ? user.followings.length : 0)}
+                            </button>
+                        </div>
                         <button
                             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 font-bold"
                             onClick={() => navigate('/mypage/edit')}
@@ -75,6 +112,34 @@ const Mypage = () => {
                         </button>
                     </div>
                 </section>
+
+                {/* 팔로워/팔로잉 모달 */}
+                {showFollowers && (
+                    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-xl p-6 w-80 max-h-[60vh] overflow-y-auto">
+                            <h3 className="text-lg font-bold mb-4">팔로워 목록</h3>
+                            <ul>
+                                {(user.followers || []).map(f => (
+                                    <li key={f.username} className="py-2 border-b last:border-b-0">{f.nickname || f.username}</li>
+                                ))}
+                            </ul>
+                            <button className="mt-4 w-full py-2 bg-gray-200 rounded hover:bg-gray-300" onClick={() => setShowFollowers(false)}>닫기</button>
+                        </div>
+                    </div>
+                )}
+                {showFollowings && (
+                    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-xl p-6 w-80 max-h-[60vh] overflow-y-auto">
+                            <h3 className="text-lg font-bold mb-4">팔로잉 목록</h3>
+                            <ul>
+                                {(user.followings || []).map(f => (
+                                    <li key={f.username} className="py-2 border-b last:border-b-0">{f.nickname || f.username}</li>
+                                ))}
+                            </ul>
+                            <button className="mt-4 w-full py-2 bg-gray-200 rounded hover:bg-gray-300" onClick={() => setShowFollowings(false)}>닫기</button>
+                        </div>
+                    </div>
+                )}
 
                 {/* 컨텐츠 */}
                 <section className="grid grid-cols-1 md:grid-cols-2 gap-8">

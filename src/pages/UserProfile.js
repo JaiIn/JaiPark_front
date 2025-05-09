@@ -24,6 +24,7 @@ const UserProfile = () => {
     setError('');
     try {
       const profile = await userService.getUserProfile(username);
+      console.log('UserProfile userData:', profile);
       setUser(profile);
       await fetchStatus();
     } catch {
@@ -72,7 +73,7 @@ const UserProfile = () => {
             )}
           </div>
           <div className="flex-1">
-            <h1 className="text-3xl font-extrabold text-black mb-1">{user.name || user.username}</h1>
+            <h1 className="text-3xl font-extrabold text-black mb-1">{user.nickname || user.username}</h1>
             <div className="text-black font-semibold">@{user.username}</div>
             <div className="text-black font-semibold">{user.email}</div>
             <div className="flex items-center gap-4 mt-2">

@@ -8,7 +8,7 @@ const PostListItem = ({ post }) => (
                 {post.title}
             </Link>
         </td>
-        <td className="px-6 py-4 whitespace-nowrap text-neutral-900 font-semibold">{post.username}</td>
+        <td className="px-6 py-4 whitespace-nowrap text-neutral-900 font-semibold">{post.nickname || post.username}</td>
         <td className="px-6 py-4 whitespace-nowrap text-neutral-900">{new Date(post.createdAt).toLocaleDateString()}</td>
     </tr>
 );

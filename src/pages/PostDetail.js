@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { postService } from '../services/postService';
 import { commentService } from '../services/commentService';
@@ -167,7 +167,7 @@ const PostDetail = () => {
                 />
                 <div className="text-black mb-4">
                     <span className="font-bold">
-                        작성자: <span className="cursor-pointer hover:underline" onClick={() => navigate(`/profile/${post.username}`)}>{post.username}</span>
+                        작성자: <span className="cursor-pointer hover:underline" onClick={() => navigate(`/profile/${post.username}`)}>{post.nickname || post.username}</span>
                     </span>
                     <span className="mx-2">|</span>
                     <span>작성일: {new Date(post.createdAt).toLocaleString()}</span>

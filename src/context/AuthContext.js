@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import { userService } from '../services/userService';
 
 const AuthContext = createContext(null);
 
@@ -23,18 +24,27 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            setIsAuthenticated(true);
-            setUser(getUserFromToken(token));
-        }
-        setLoading(false);
+        const initializeAuth = async () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                setIsAuthenticated(true);
+                try {
+                    const userInfo = await userService.getMe();
+                    setUser(userInfo);
+                } catch (e) {
+                    setUser(getUserFromToken(token));
+                }
+            }
+            setLoading(false);
+        };
+        initializeAuth();
     }, []);
 
-    const login = (token) => {
+    const login = async (token) => {
         localStorage.setItem('token', token);
         setIsAuthenticated(true);
-        setUser(getUserFromToken(token));
+        const userInfo = await userService.getMe();
+        setUser(userInfo);
     };
 
     const logout = () => {

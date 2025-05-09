@@ -32,4 +32,11 @@ export const commentService = {
         const response = await commentApi.getMyComments(token);
         return response.data;
     },
+
+    // 사용자의 댓글 목록 조회
+    getCommentsByUsername: async (username) => {
+        const token = localStorage.getItem('token');
+        const response = await commentApi.getCommentsByUsername(username, token);
+        return response.data;
+    }
 }; 

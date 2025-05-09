@@ -16,7 +16,7 @@ const TableBody = ({ posts, onDelete, onLike, onBookmark, isLiked, isBookmarked 
                             {post.title}
                         </Link>
                     </td>
-                    <td className="text-center px-4 py-3 text-black font-bold">{post.author}</td>
+                    <td className="text-center px-4 py-3 text-black font-bold">{post.nickname || post.author || post.username}</td>
                     <td className="text-center px-4 py-3 text-black">{new Date(post.createdAt).toLocaleDateString()}</td>
                     <td className="text-center px-4 py-3 text-black">{post.viewCount}</td>
                     <td className="text-center px-4 py-3">

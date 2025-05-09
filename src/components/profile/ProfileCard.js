@@ -12,6 +12,7 @@ const ProfileCard = ({ user }) => {
             />
             <h1 className="text-3xl font-extrabold text-gray-900 mb-2">내 정보</h1>
             <div className="w-full flex flex-col items-center text-lg space-y-2 mb-4">
+                <ProfileInfoRow label="닉네임" value={user.nickname} />
                 <ProfileInfoRow label="아이디" value={user.username} />
                 <ProfileInfoRow label="이메일" value={user.email} />
             </div>

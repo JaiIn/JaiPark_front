@@ -48,17 +48,17 @@ export const postApi = {
     },
 
     // 사용자의 게시글 조회
-    getPostsByUsername: (token) => {
+    getPostsByUsername: (username, token) => {
         return axios.get(`${API_URL}/posts/my`, getAuthHeader(token));
     },
 
     // 좋아요한 게시글 조회
-    getLikedPosts: (token) => {
+    getLikedPosts: (username, token) => {
         return axios.get(`${API_URL}/posts/liked`, getAuthHeader(token));
     },
 
     // 북마크한 게시글 조회
-    getBookmarkedPosts: (token) => {
+    getBookmarkedPosts: (username, token) => {
         return axios.get(`${API_URL}/posts/bookmarked`, getAuthHeader(token));
     },
 

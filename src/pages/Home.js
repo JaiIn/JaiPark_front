@@ -38,7 +38,7 @@ const Home = () => {
               </Link>
               <div className="text-sm text-black mb-2 line-clamp-2">{post.content}</div>
               <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
-                <span>작성자: {post.username}</span>
+                <span>작성자: {post.nickname || post.username}</span>
                 <span>{post.createdAt ? new Date(post.createdAt).toLocaleDateString() : ''}</span>
               </div>
             </div>

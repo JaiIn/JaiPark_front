@@ -22,7 +22,7 @@ const PostList = ({ posts, onPostUpdate }) => {
                     </div>
                     <div className="flex justify-between items-center">
                         <div className="flex gap-2 items-center">
-                            <span className="badge badge-info text-white">{post.username}</span>
+                            <span className="badge badge-info text-white">{post.nickname || post.username}</span>
                             <span className="text-sm text-gray-500">
                                 {new Date(post.createdAt).toLocaleDateString()}
                             </span>

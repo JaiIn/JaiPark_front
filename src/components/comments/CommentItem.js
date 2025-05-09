@@ -4,7 +4,7 @@ const CommentItem = ({ comment, canDelete, onDelete }) => (
     <div className="border-b pb-4">
         <div className="flex justify-between items-start">
             <div>
-                <span className="font-bold !text-black">{comment.username}</span>
+                <span className="font-bold !text-black">{comment.nickname || comment.username}</span>
                 <span className="!text-black text-sm ml-2">
                     {new Date(comment.createdAt).toLocaleString()}
                 </span>
