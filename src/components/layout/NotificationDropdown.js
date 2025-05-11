@@ -1,16 +1,21 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { notificationService } from '../../services/notificationService';
 import { FaBell } from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
 
 const NotificationDropdown = () => {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [open, setOpen] = useState(false);
+    const [error, setError] = useState(null);
     const dropdownRef = useRef(null);
+    const { isAuthenticated } = useAuth();
 
     useEffect(() => {
-        fetchNotifications();
-        fetchUnreadCount();
+        if (isAuthenticated) {
+            fetchNotifications();
+            fetchUnreadCount();
+        }
         // 클릭 외부 감지로 드롭다운 닫기
         const handleClickOutside = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -19,25 +24,55 @@ const NotificationDropdown = () => {
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    }, [isAuthenticated]);
 
     const fetchNotifications = async () => {
-        const data = await notificationService.getNotifications();
-        setNotifications(data);
+        try {
+            setError(null);
+            const data = await notificationService.getNotifications();
+            setNotifications(data);
+        } catch (error) {
+            console.error('Failed to fetch notifications:', error);
+            setError('알림을 불러오는데 실패했습니다.');
+        }
     };
+
     const fetchUnreadCount = async () => {
-        const count = await notificationService.getUnreadCount();
-        setUnreadCount(count);
+        try {
+            setError(null);
+            const count = await notificationService.getUnreadCount();
+            setUnreadCount(count);
+        } catch (error) {
+            console.error('Failed to fetch unread count:', error);
+            setError('알림 수를 불러오는데 실패했습니다.');
+        }
     };
+
     const handleOpen = () => {
+        if (!isAuthenticated) {
+            return;
+        }
         setOpen((prev) => !prev);
-        if (!open) fetchNotifications();
+        if (!open) {
+            fetchNotifications();
+        }
     };
+
     const handleMarkAsRead = async (id) => {
-        await notificationService.markAsRead(id);
-        fetchNotifications();
-        fetchUnreadCount();
+        try {
+            setError(null);
+            await notificationService.markAsRead(id);
+            fetchNotifications();
+            fetchUnreadCount();
+        } catch (error) {
+            console.error('Failed to mark notification as read:', error);
+            setError('알림을 읽음 처리하는데 실패했습니다.');
+        }
     };
+
+    if (!isAuthenticated) {
+        return null;
+    }
 
     return (
         <div className="relative" ref={dropdownRef}>
@@ -52,6 +87,9 @@ const NotificationDropdown = () => {
             {open && (
                 <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                     <div className="p-3 border-b font-bold text-black">알림</div>
+                    {error && (
+                        <div className="p-3 text-red-500 text-sm">{error}</div>
+                    )}
                     <ul className="max-h-80 overflow-y-auto">
                         {notifications.length === 0 ? (
                             <li className="p-4 text-gray-400 text-center">알림이 없습니다.</li>

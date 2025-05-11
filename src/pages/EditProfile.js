@@ -3,7 +3,7 @@ import { userService } from '../services/userService';
 import { useNavigate } from 'react-router-dom';
 
 const EditProfile = () => {
-  const [form, setForm] = useState({ name: '', email: '', profileImage: '' });
+  const [form, setForm] = useState({ nickname: '', email: '' });
   const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -12,7 +12,7 @@ const EditProfile = () => {
 
   useEffect(() => {
     userService.getMe().then(data => {
-      setForm({ name: data.name || '', email: data.email || '', profileImage: data.profileImage || '' });
+      setForm({ nickname: data.nickname || '', email: data.email || '' });
     });
   }, []);
 
@@ -58,36 +58,79 @@ const EditProfile = () => {
   return (
     <div className="max-w-xl mx-auto bg-white shadow-lg rounded-2xl p-8 mt-10">
       <h2 className="text-2xl font-bold mb-6 text-black">내 정보 수정</h2>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-black font-semibold mb-1">이름</label>
-          <input name="name" value={form.name} onChange={handleChange} className="w-full border rounded px-3 py-2" />
+          <label className="block text-black font-semibold mb-1">닉네임</label>
+          <input
+            name="nickname"
+            value={form.nickname}
+            onChange={handleChange}
+            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
         <div>
           <label className="block text-black font-semibold mb-1">이메일</label>
-          <input name="email" value={form.email} onChange={handleChange} className="w-full border rounded px-3 py-2" />
+          <input
+            name="email"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
-        <div>
-          <label className="block text-black font-semibold mb-1">프로필 이미지 URL</label>
-          <input name="profileImage" value={form.profileImage} onChange={handleChange} className="w-full border rounded px-3 py-2" />
-        </div>
-        <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded font-bold" disabled={loading}>정보 저장</button>
+        <button
+          type="submit"
+          className="w-full bg-blue-500 text-white py-2 rounded font-bold hover:bg-blue-600 transition-colors"
+          disabled={loading}
+        >
+          {loading ? '저장 중...' : '정보 저장'}
+        </button>
       </form>
-      <hr className="my-6" />
-      <form onSubmit={handlePasswordSubmit} className="space-y-4">
-        <div>
-          <label className="block text-black font-semibold mb-1">현재 비밀번호</label>
-          <input type="password" name="currentPassword" value={passwords.currentPassword} onChange={handlePasswordChange} className="w-full border rounded px-3 py-2" />
+
+      <div className="mt-8">
+        <h3 className="text-xl font-bold mb-4 text-black">비밀번호 변경</h3>
+        <form onSubmit={handlePasswordSubmit} className="space-y-4">
+          <div>
+            <label className="block text-black font-semibold mb-1">현재 비밀번호</label>
+            <input
+              name="currentPassword"
+              type="password"
+              value={passwords.currentPassword}
+              onChange={handlePasswordChange}
+              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-black font-semibold mb-1">새 비밀번호</label>
+            <input
+              name="newPassword"
+              type="password"
+              value={passwords.newPassword}
+              onChange={handlePasswordChange}
+              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white py-2 rounded font-bold hover:bg-blue-600 transition-colors"
+            disabled={loading}
+          >
+            {loading ? '변경 중...' : '비밀번호 변경'}
+          </button>
+        </form>
+      </div>
+
+      {error && (
+        <div className="mt-4 p-3 bg-red-100 text-red-700 rounded">
+          {error}
         </div>
-        <div>
-          <label className="block text-black font-semibold mb-1">새 비밀번호</label>
-          <input type="password" name="newPassword" value={passwords.newPassword} onChange={handlePasswordChange} className="w-full border rounded px-3 py-2" />
+      )}
+      {success && (
+        <div className="mt-4 p-3 bg-green-100 text-green-700 rounded">
+          {success}
         </div>
-        <button type="submit" className="w-full bg-green-500 text-white py-2 rounded font-bold" disabled={loading}>비밀번호 변경</button>
-      </form>
-      {error && <div className="mt-4 text-red-500">{error}</div>}
-      {success && <div className="mt-4 text-green-600">{success}</div>}
-      <button className="mt-6 text-blue-500 hover:underline" onClick={() => navigate(-1)}>돌아가기</button>
+      )}
     </div>
   );
 };

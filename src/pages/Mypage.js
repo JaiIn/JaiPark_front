@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { postService } from '../services/postService';
 import { commentService } from '../services/commentService';
 import { userService } from '../services/userService';
+import profileDefault from '../assets/profile-default.png';
 
 const Mypage = () => {
     const { user, isAuthenticated, setUser } = useAuth();
@@ -83,16 +84,15 @@ const Mypage = () => {
             <div className="max-w-5xl mx-auto space-y-10">
                 {/* 프로필 */}
                 <section className="bg-white shadow-xl rounded-2xl p-8 flex items-center gap-8">
-                    <div className="w-24 h-24 rounded-full bg-neutral-200 flex items-center justify-center overflow-hidden">
-                        {user.profileImage ? (
-                            <img src={user.profileImage} alt="프로필" className="w-full h-full object-cover" />
-                        ) : (
-                            <svg className="w-12 h-12 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                        )}
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-indigo-200 shadow-lg">
+                        <img
+                            src={user.profileImage || profileDefault}
+                            alt="프로필"
+                            className="w-full h-full object-cover"
+                        />
                     </div>
-                    <div>
+                    
+                    <div className="flex-1">
                         <div className="text-3xl font-extrabold text-black mb-1">닉네임: {user.nickname}</div>
                         <div className="text-black font-semibold">아이디: {user.username}</div>
                         <div className="text-black font-semibold">이메일: {user.email}</div>
@@ -105,7 +105,7 @@ const Mypage = () => {
                             </button>
                         </div>
                         <button
-                            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 font-bold"
+                            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 font-bold transition-colors"
                             onClick={() => navigate('/mypage/edit')}
                         >
                             내 정보 수정
