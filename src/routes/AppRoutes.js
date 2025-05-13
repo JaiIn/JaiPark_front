@@ -1,15 +1,25 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import Mypage from '../pages/Mypage';
-import Login from '../pages/Login';
-import Signup from '../pages/Signup';
-import PostList from '../pages/PostList';
-import PostDetail from '../pages/PostDetail';
-import PostForm from '../pages/PostForm';
-import EditProfile from '../pages/EditProfile';
-import UserProfile from '../pages/UserProfile';
-import Home from '../pages/Home';
+
+// 로딩 컴포넌트
+const LoadingSpinner = () => (
+    <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500"></div>
+        <span className="sr-only">Loading...</span>
+    </div>
+);
+
+// Lazy-loaded 컴포넌트
+const Home = lazy(() => import('../pages/Home'));
+const Mypage = lazy(() => import('../pages/Mypage'));
+const Login = lazy(() => import('../pages/Login'));
+const Signup = lazy(() => import('../pages/Signup'));
+const PostList = lazy(() => import('../pages/PostList'));
+const PostDetail = lazy(() => import('../pages/PostDetail'));
+const PostForm = lazy(() => import('../pages/PostForm'));
+const EditProfile = lazy(() => import('../pages/EditProfile'));
+const UserProfile = lazy(() => import('../pages/UserProfile'));
 
 // 보호된 라우트 컴포넌트
 const PrivateRoute = ({ children }) => {
@@ -25,75 +35,77 @@ const PublicRoute = ({ children }) => {
 
 const AppRoutes = () => {
     return (
-        <Routes>
-            <Route
-                path="/"
-                element={<Navigate to="/home" replace />}
-            />
-            <Route
-                path="/home"
-                element={
-                    <PrivateRoute>
-                        <Home />
-                    </PrivateRoute>
-                }
-            />
-            <Route
-                path="/mypage"
-                element={
-                    <PrivateRoute>
-                        <Mypage />
-                    </PrivateRoute>
-                }
-            />
-            <Route
-                path="/login"
-                element={
-                    <PublicRoute>
-                        <Login />
-                    </PublicRoute>
-                }
-            />
-            <Route
-                path="/signup"
-                element={
-                    <PublicRoute>
-                        <Signup />
-                    </PublicRoute>
-                }
-            />
-            <Route path="/posts" element={<PostList />} />
-            <Route path="/posts/:id" element={<PostDetail />} />
-            <Route
-                path="/posts/new"
-                element={
-                    <PrivateRoute>
-                        <PostForm />
-                    </PrivateRoute>
-                }
-            />
-            <Route
-                path="/posts/:id/edit"
-                element={
-                    <PrivateRoute>
-                        <PostForm />
-                    </PrivateRoute>
-                }
-            />
-            <Route
-                path="/mypage/edit"
-                element={
-                    <PrivateRoute>
-                        <EditProfile />
-                    </PrivateRoute>
-                }
-            />
-            <Route
-                path="/profile/:username"
-                element={<UserProfile />}
-            />
-        </Routes>
+        <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+                <Route
+                    path="/"
+                    element={<Navigate to="/home" replace />}
+                />
+                <Route
+                    path="/home"
+                    element={
+                        <PrivateRoute>
+                            <Home />
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/mypage"
+                    element={
+                        <PrivateRoute>
+                            <Mypage />
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/login"
+                    element={
+                        <PublicRoute>
+                            <Login />
+                        </PublicRoute>
+                    }
+                />
+                <Route
+                    path="/signup"
+                    element={
+                        <PublicRoute>
+                            <Signup />
+                        </PublicRoute>
+                    }
+                />
+                <Route path="/posts" element={<PostList />} />
+                <Route path="/posts/:id" element={<PostDetail />} />
+                <Route
+                    path="/posts/new"
+                    element={
+                        <PrivateRoute>
+                            <PostForm />
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/posts/:id/edit"
+                    element={
+                        <PrivateRoute>
+                            <PostForm />
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/mypage/edit"
+                    element={
+                        <PrivateRoute>
+                            <EditProfile />
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/profile/:username"
+                    element={<UserProfile />}
+                />
+            </Routes>
+        </Suspense>
     );
 };
 
-export default AppRoutes; 
+export default AppRoutes;

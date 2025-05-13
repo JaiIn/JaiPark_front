@@ -2,9 +2,26 @@ import axios from 'axios';
 import { API_URL, getAuthHeader } from './config';
 
 export const postApi = {
-    // 게시글 목록 조회
+    // 게시글 목록 조회 (오프셋 페이지네이션)
     getPosts: (page = 0, size = 10) => {
         return axios.get(`${API_URL}/posts?page=${page}&size=${size}`);
+    },
+    
+    // 키셋 페이지네이션을 이용한 게시글 목록 조회
+    getPostsWithCursor: (lastPostId = null, limit = 20) => {
+        const url = new URL(`${API_URL}/posts/cursor`);
+        if (lastPostId) url.searchParams.set('lastPostId', lastPostId);
+        url.searchParams.set('limit', limit);
+        return axios.get(url.toString());
+    },
+    
+    // 시간 기반 키셋 페이지네이션을 이용한 게시글 목록 조회
+    getPostsWithTimeCursor: (createdAt = null, id = null, limit = 20) => {
+        const url = new URL(`${API_URL}/posts/time-cursor`);
+        if (createdAt) url.searchParams.set('createdAt', createdAt);
+        if (id) url.searchParams.set('id', id);
+        url.searchParams.set('limit', limit);
+        return axios.get(url.toString());
     },
 
     // 게시글 상세 조회
@@ -25,6 +42,11 @@ export const postApi = {
     // 게시글 삭제
     deletePost: (id, token) => {
         return axios.delete(`${API_URL}/posts/${id}`, getAuthHeader(token));
+    },
+    
+    // 배치로 여러 게시글의 상태 조회
+    getBatchPostsData: (postIds, token) => {
+        return axios.post(`${API_URL}/posts/batch`, { postIds }, getAuthHeader(token));
     },
 
     // 좋아요 상태 조회
@@ -52,6 +74,11 @@ export const postApi = {
         return axios.get(`${API_URL}/posts/my`, getAuthHeader(token));
     },
 
+    // 사용자의 댓글 조회
+    getCommentsByUsername: (username, token) => {
+        return axios.get(`${API_URL}/comments/my`, getAuthHeader(token));
+    },
+
     // 좋아요한 게시글 조회
     getLikedPosts: (username, token) => {
         return axios.get(`${API_URL}/posts/liked`, getAuthHeader(token));
@@ -70,5 +97,14 @@ export const postApi = {
     // 팔로잉한 게시글 조회
     getFollowingsPosts: (token) => {
         return axios.get(`${API_URL}/posts/followings`, getAuthHeader(token));
+    },
+    
+    // 팔로잉한 게시글 커서 기반 조회
+    getFollowingsPostsWithCursor: (token, createdAt = null, id = null, limit = 20) => {
+        const url = new URL(`${API_URL}/posts/followings/cursor`);
+        if (createdAt) url.searchParams.set('createdAt', createdAt);
+        if (id) url.searchParams.set('id', id);
+        url.searchParams.set('limit', limit);
+        return axios.get(url.toString(), getAuthHeader(token));
     }
-}; 
+};
