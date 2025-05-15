@@ -91,9 +91,13 @@ const PostCard = ({
             
             {/* 좋아요 버튼 */}
             <button
-              onClick={() => onLikeClick && onLikeClick(post.id)}
+              onClick={() => {
+                console.log(`Like button clicked for post ${post.id}, current isLiked=${isLiked}`);
+                onLikeClick && onLikeClick(post.id);
+              }}
               className="flex items-center focus:outline-none"
               aria-label={isLiked ? "좋아요 취소" : "좋아요"}
+              data-testid={`like-button-${post.id}`}
             >
               {isLiked ? (
                 <FaHeart className="text-red-500 mr-1" />
@@ -105,9 +109,13 @@ const PostCard = ({
             
             {/* 북마크 버튼 */}
             <button
-              onClick={() => onBookmarkClick && onBookmarkClick(post.id)}
+              onClick={() => {
+                console.log(`Bookmark button clicked for post ${post.id}, current isBookmarked=${isBookmarked}`);
+                onBookmarkClick && onBookmarkClick(post.id);
+              }}
               className="flex items-center focus:outline-none"
               aria-label={isBookmarked ? "북마크 취소" : "북마크"}
+              data-testid={`bookmark-button-${post.id}`}
             >
               {isBookmarked ? (
                 <FaBookmark className="text-indigo-500" />

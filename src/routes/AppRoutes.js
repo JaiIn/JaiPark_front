@@ -20,6 +20,7 @@ const PostDetail = lazy(() => import('../pages/PostDetail'));
 const PostForm = lazy(() => import('../pages/PostForm'));
 const EditProfile = lazy(() => import('../pages/EditProfile'));
 const UserProfile = lazy(() => import('../pages/UserProfile'));
+const Chat = lazy(() => import('../pages/Chat'));
 
 // 보호된 라우트 컴포넌트
 const PrivateRoute = ({ children }) => {
@@ -102,6 +103,14 @@ const AppRoutes = () => {
                 <Route
                     path="/profile/:username"
                     element={<UserProfile />}
+                />
+                <Route
+                    path="/chat"
+                    element={
+                        <PrivateRoute>
+                            <Chat />
+                        </PrivateRoute>
+                    }
                 />
             </Routes>
         </Suspense>

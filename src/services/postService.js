@@ -199,16 +199,36 @@ export const postService = {
   getHomePageData: async () => {
     try {
       // Promise.all을 사용하여 여러 API를 병렬로 호출
-      const [latestPostsResponse, followingPostsResponse] = await Promise.all([
+      const [
+        latestPostsResponse, 
+        followingPostsResponse, 
+        likedPostsResponse, 
+        bookmarkedPostsResponse
+      ] = await Promise.all([
         apiGet(`${API_URL}${ENDPOINTS.POST.BASE}`, { page: 0, size: 5 }),  // 최신 게시글 5개
         apiGet(`${API_URL}${ENDPOINTS.POST.FOLLOWINGS}`), // 팔로우 게시글
+        apiGet(`${API_URL}${ENDPOINTS.POST.LIKED}`), // 좋아요 상태 확인용
+        apiGet(`${API_URL}${ENDPOINTS.POST.BOOKMARKED}`), // 북마크 상태 확인용
         // 알림 API (향후 구현)
       ]);
+      
+      // 좋아요/북마크 상태 추출
+      const likedPostIds = (likedPostsResponse || []).map(post => post.id);
+      const bookmarkedPostIds = (bookmarkedPostsResponse || []).map(post => post.id);
+      
+      // 팔로잉 게시글에 좋아요/북마크 상태 추가
+      const followingPosts = (followingPostsResponse || []).map(post => ({
+        ...post,
+        isLiked: likedPostIds.includes(post.id),
+        isBookmarked: bookmarkedPostIds.includes(post.id)
+      }));
+      
+      console.log('Enhanced following posts with like/bookmark data:', followingPosts);
       
       // 결과를 하나의 객체로 병합
       return {
         latestPosts: latestPostsResponse || [],
-        followingPosts: followingPostsResponse || [],
+        followingPosts: followingPosts,
         notifications: [] // 알림 기능 구현 시 추가
       };
     } catch (error) {

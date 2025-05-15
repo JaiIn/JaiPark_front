@@ -36,10 +36,12 @@ const PostList = ({
   
   // props로 전달된 좋아요/북마크 목록이 변경되면 상태 업데이트
   useEffect(() => {
+    console.log('PostList received likedPosts:', likedPosts);
     setLikes(new Set(likedPosts));
   }, [likedPosts]);
   
   useEffect(() => {
+    console.log('PostList received bookmarkedPosts:', bookmarkedPosts);
     setBookmarks(new Set(bookmarkedPosts));
   }, [bookmarkedPosts]);
   
@@ -124,7 +126,7 @@ const PostList = ({
                 showActions={isAuthenticated}
                 isLiked={likes.has(post.id)}
                 isBookmarked={bookmarks.has(post.id)}
-                commentCount={commentCounts[post.id] || 0}
+                commentCount={commentCounts[post.id] || post.commentCount || 0}
                 onLikeClick={handleLike}
                 onBookmarkClick={handleBookmark}
               />

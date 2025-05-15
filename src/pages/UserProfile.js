@@ -5,6 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import useFollow from '../hooks/useFollow';
 import FollowButton from '../components/profile/FollowButton';
 import FollowList from '../components/profile/FollowList';
+import { chatService } from '../services/chatService';
+import { FaComments } from 'react-icons/fa';
 
 const UserProfile = () => {
   const { username } = useParams();
@@ -18,6 +20,16 @@ const UserProfile = () => {
 
   const followHook = useFollow(username);
   const { followStatus, followers, following, fetchStatus, fetchFollowers, fetchFollowing, follow, unfollow } = followHook;
+
+  // 채팅방 생성 및 이동
+  const startChat = async () => {
+    try {
+      const chatRoom = await chatService.createOrGetChatRoom(username);
+      navigate('/chat');
+    } catch (error) {
+      console.error('채팅방 생성 오류:', error);
+    }
+  };
 
   const fetchAll = async () => {
     setLoading(true);
@@ -84,10 +96,21 @@ const UserProfile = () => {
                 팔로잉 {followStatus.followingCount}
               </button>
             </div>
-            {me && me.username !== username && (
-              <FollowButton isFollowing={followStatus.isFollowing} onFollow={follow} onUnfollow={unfollow} />
-            )}
-            <button className="mt-4 ml-4 text-blue-500 hover:underline" onClick={() => navigate(-1)}>돌아가기</button>
+            <div className="mt-4 flex space-x-4">
+              {me && me.username !== username && (
+                <>
+                  <FollowButton isFollowing={followStatus.isFollowing} onFollow={follow} onUnfollow={unfollow} />
+                  <button
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
+                    onClick={startChat}
+                  >
+                    <FaComments />
+                    <span>메시지 보내기</span>
+                  </button>
+                </>
+              )}
+              <button className="text-blue-500 hover:underline" onClick={() => navigate(-1)}>돌아가기</button>
+            </div>
           </div>
         </div>
         <FollowList title="팔로워 목록" users={followers} visible={showFollowers} />
@@ -97,4 +120,4 @@ const UserProfile = () => {
   );
 };
 
-export default UserProfile; 
+export default UserProfile;

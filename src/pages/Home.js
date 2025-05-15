@@ -60,13 +60,17 @@ const Home = () => {
           });
           
           // 게시글에서 좋아요/북마크 상태 추출
+          console.log('Home page data received:', result);
           const likedIds = result.followingPosts
-            ?.filter(post => post.isLiked)
+            ?.filter(post => post.isLiked === true)
             ?.map(post => post.id) || [];
             
           const bookmarkedIds = result.followingPosts
-            ?.filter(post => post.isBookmarked)
+            ?.filter(post => post.isBookmarked === true)
             ?.map(post => post.id) || [];
+            
+          console.log('Extracted liked posts:', likedIds);
+          console.log('Extracted bookmarked posts:', bookmarkedIds);
             
           setLikedPostIds(likedIds);
           setBookmarkedPostIds(bookmarkedIds);
@@ -94,11 +98,33 @@ const Home = () => {
     try {
       await postService.toggleLike(postId);
       // 좋아요 상태 업데이트
-      setLikedPostIds(prev => 
-        prev.includes(postId) 
+      setLikedPostIds(prev => {
+        const newState = prev.includes(postId) 
           ? prev.filter(id => id !== postId) 
-          : [...prev, postId]
-      );
+          : [...prev, postId];
+        console.log('Updated liked posts state:', newState);
+        return newState;
+      });
+      
+      // 홈데이터의 게시글 상태도 업데이트
+      setHomeData(prev => {
+        const updatedPosts = prev.followingPosts.map(post => {
+          if (post.id === postId) {
+            const wasLiked = likedPostIds.includes(postId);
+            return {
+              ...post,
+              isLiked: !wasLiked,
+              likeCount: wasLiked ? (post.likeCount > 0 ? post.likeCount - 1 : 0) : post.likeCount + 1
+            };
+          }
+          return post;
+        });
+        
+        return {
+          ...prev,
+          followingPosts: updatedPosts
+        };
+      });
     } catch (err) {
       console.error('좋아요 처리 중 오류:', err);
     }
@@ -109,11 +135,31 @@ const Home = () => {
     try {
       await postService.toggleBookmark(postId);
       // 북마크 상태 업데이트
-      setBookmarkedPostIds(prev => 
-        prev.includes(postId) 
+      setBookmarkedPostIds(prev => {
+        const newState = prev.includes(postId) 
           ? prev.filter(id => id !== postId) 
-          : [...prev, postId]
-      );
+          : [...prev, postId];
+        console.log('Updated bookmarked posts state:', newState);
+        return newState;
+      });
+      
+      // 홈데이터의 게시글 상태도 업데이트
+      setHomeData(prev => {
+        const updatedPosts = prev.followingPosts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              isBookmarked: !bookmarkedPostIds.includes(postId)
+            };
+          }
+          return post;
+        });
+        
+        return {
+          ...prev,
+          followingPosts: updatedPosts
+        };
+      });
     } catch (err) {
       console.error('북마크 처리 중 오류:', err);
     }
@@ -156,6 +202,10 @@ const Home = () => {
             onPostBookmark={handlePostBookmark}
             likedPosts={likedPostIds}
             bookmarkedPosts={bookmarkedPostIds}
+            commentCounts={homeData.followingPosts.reduce((acc, post) => {
+              acc[post.id] = post.commentCount || 0;
+              return acc;
+            }, {})}
           />
         </div>
         
