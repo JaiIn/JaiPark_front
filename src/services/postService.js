@@ -1,170 +1,258 @@
-import { postApi } from '../api/postApi';
+import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api';
+import { API_URL, ENDPOINTS } from '../api/apiConfig';
 
+/**
+ * 게시글 관련 API 서비스
+ */
 export const postService = {
-    // 게시글 목록 조회
-    getPosts: async (page = 0, size = 10) => {
-        const response = await postApi.getPosts(page, size);
-        return response.data;
-    },
-
-    // 키셋 페이지네이션을 이용한 게시글 목록 조회
-    getPostsWithCursor: async (lastPostId = null, limit = 20) => {
-        const response = await postApi.getPostsWithCursor(lastPostId, limit);
-        return response.data;
-    },
-
-    // 시간 기반 키셋 페이지네이션을 이용한 게시글 목록 조회
-    getPostsWithTimeCursor: async (createdAt = null, id = null, limit = 20) => {
-        const response = await postApi.getPostsWithTimeCursor(createdAt, id, limit);
-        return response.data;
-    },
-
-    // 게시글 검색
-    searchPosts: async (keyword, page = 0, size = 10) => {
-        const response = await postApi.searchPosts(keyword, page, size);
-        return response.data;
-    },
-
-    // 게시글 상세 조회
-    getPost: async (id) => {
-        const response = await postApi.getPost(id);
-        return response.data;
-    },
-
-    // 게시글 작성
-    createPost: async (title, content) => {
-        const token = localStorage.getItem('token');
-        const response = await postApi.createPost({ title, content }, token);
-        return response.data;
-    },
-
-    // 게시글 수정
-    updatePost: async (id, title, content) => {
-        const token = localStorage.getItem('token');
-        const response = await postApi.updatePost(id, { title, content }, token);
-        return response.data;
-    },
-
-    // 게시글 삭제
-    deletePost: async (id) => {
-        const token = localStorage.getItem('token');
-        await postApi.deletePost(id, token);
-    },
-
-    // 배치로 여러 게시글의 상태 조회
-    getBatchPostsData: async (postIds) => {
-        const token = localStorage.getItem('token');
-        const response = await postApi.getBatchPostsData(postIds, token);
-        return response.data;
-    },
-
-    // 좋아요 상태 확인
-    getLikeStatus: async (id) => {
-        const token = localStorage.getItem('token');
-        const response = await postApi.getLikeStatus(id, token);
-        return response.data;
-    },
-
-    // 좋아요 토글
-    toggleLike: async (id) => {
-        const token = localStorage.getItem('token');
-        const response = await postApi.toggleLike(id, token);
-        return response.data;
-    },
-
-    // 북마크 상태 확인
-    getBookmarkStatus: async (id) => {
-        const token = localStorage.getItem('token');
-        const response = await postApi.getBookmarkStatus(id, token);
-        return response.data;
-    },
-
-    // 북마크 토글
-    toggleBookmark: async (id) => {
-        const token = localStorage.getItem('token');
-        const response = await postApi.toggleBookmark(id, token);
-        return response.data;
-    },
-
-    // 사용자의 게시글 목록 조회
-    getPostsByUsername: async (username) => {
-        const token = localStorage.getItem('token');
-        const response = await postApi.getPostsByUsername(username, token);
-        return response.data;
-    },
-
-    // 사용자의 댓글 목록 조회
-    getCommentsByUsername: async (username) => {
-        const token = localStorage.getItem('token');
-        const response = await postApi.getCommentsByUsername(username, token);
-        return response.data;
-    },
-
-    // 사용자가 좋아요한 게시글 목록 조회
-    getLikedPosts: async (username) => {
-        const token = localStorage.getItem('token');
-        const response = await postApi.getLikedPosts(username, token);
-        return response.data;
-    },
-
-    // 사용자가 북마크한 게시글 목록 조회
-    getBookmarkedPosts: async (username) => {
-        const token = localStorage.getItem('token');
-        const response = await postApi.getBookmarkedPosts(username, token);
-        return response.data;
-    },
-
-    // 팔로우한 사람들의 게시글 조회
-    getFollowingsPosts: async () => {
-        const token = localStorage.getItem('token');
-        const response = await postApi.getFollowingsPosts(token);
-        return response.data;
-    },
-
-    // 팔로우한 사람들의 게시글 커서 기반 조회
-    getFollowingsPostsWithCursor: async (createdAt = null, id = null, limit = 20) => {
-        const token = localStorage.getItem('token');
-        const response = await postApi.getFollowingsPostsWithCursor(token, createdAt, id, limit);
-        return response.data;
-    },
-
-    // 여러 API를 한 번에 호출하여 데이터 가져오기
-    getUserDashboardData: async (username) => {
-        const token = localStorage.getItem('token');
-        
-        // Promise.all을 사용하여 여러 API를 병렬로 호출
-        const [userPosts, userComments, userLikes, userBookmarks] = await Promise.all([
-            postApi.getPostsByUsername(username, token),
-            postApi.getCommentsByUsername(username, token),
-            postApi.getLikedPosts(username, token),
-            postApi.getBookmarkedPosts(username, token)
-        ]);
-
-        // 모든 응답 데이터를 하나의 객체로 합침
-        return {
-            posts: userPosts.data,
-            comments: userComments.data,
-            likes: userLikes.data,
-            bookmarks: userBookmarks.data
-        };
-    },
-
-    // 홈 화면에 필요한 모든 데이터를 한 번에 가져오기
-    getHomePageData: async () => {
-        const token = localStorage.getItem('token');
-        
-        // Promise.all을 사용하여 여러 API를 병렬로 호출
-        const [latestPosts, followingPosts, notifications] = await Promise.all([
-            postApi.getPosts(0, 5),  // 최신 게시글 5개
-            postApi.getFollowingsPosts(token), // 팔로우 게시글
-            // notificationApi.getNotifications(token) // 알림 (실제 서비스에서 구현)
-        ]);
-
-        // 모든 응답 데이터를 하나의 객체로 합침
-        return {
-            latestPosts: latestPosts.data,
-            followingPosts: followingPosts.data,
-            // notifications: notifications.data
-        };
+  /**
+   * 게시글 목록 조회 (오프셋 페이지네이션)
+   * @param {number} page - 페이지 번호
+   * @param {number} size - 페이지 크기
+   * @returns {Promise<Array>} - 게시글 목록
+   */
+  getPosts: (page = 0, size = 10) => {
+    return apiGet(`${API_URL}${ENDPOINTS.POST.BASE}`, { page, size });
+  },
+  
+  /**
+   * 게시글 목록 커서 기반 조회
+   * @param {string|null} lastPostId - 마지막 게시글 ID
+   * @param {number} limit - 조회할 개수
+   * @returns {Promise<Object>} - 게시글 목록과 다음 커서
+   */
+  getPostsWithCursor: (lastPostId = null, limit = 20) => {
+    const params = { limit };
+    if (lastPostId) params.lastPostId = lastPostId;
+    
+    return apiGet(`${API_URL}${ENDPOINTS.POST.CURSOR}`, params);
+  },
+  
+  /**
+   * 시간 기준 커서 기반 조회
+   * @param {string|null} createdAt - 마지막 게시글 생성 시간
+   * @param {string|null} id - 마지막 게시글 ID
+   * @param {number} limit - 조회할 개수
+   * @returns {Promise<Object>} - 게시글 목록과 다음 커서
+   */
+  getPostsWithTimeCursor: (createdAt = null, id = null, limit = 20) => {
+    const params = { limit };
+    if (createdAt) params.createdAt = createdAt;
+    if (id) params.id = id;
+    
+    return apiGet(`${API_URL}${ENDPOINTS.POST.TIME_CURSOR}`, params);
+  },
+  
+  /**
+   * 게시글 상세 조회
+   * @param {string} id - 게시글 ID
+   * @returns {Promise<Object>} - 게시글 상세 정보
+   */
+  getPost: (id) => {
+    return apiGet(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}`);
+  },
+  
+  /**
+   * 게시글 작성
+   * @param {Object} data - 게시글 데이터 (title, content)
+   * @returns {Promise<Object>} - 생성된 게시글 정보
+   */
+  createPost: (data) => {
+    return apiPost(`${API_URL}${ENDPOINTS.POST.BASE}`, data);
+  },
+  
+  /**
+   * 게시글 수정
+   * @param {string} id - 게시글 ID
+   * @param {Object} data - 수정할 게시글 데이터 (title, content)
+   * @returns {Promise<Object>} - 수정된 게시글 정보
+   */
+  updatePost: (id, data) => {
+    return apiPut(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}`, data);
+  },
+  
+  /**
+   * 게시글 삭제
+   * @param {string} id - 게시글 ID
+   * @returns {Promise<Object>} - 삭제 결과
+   */
+  deletePost: (id) => {
+    return apiDelete(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}`);
+  },
+  
+  /**
+   * 배치로 여러 게시글 상태 조회
+   * @param {Array<string>} postIds - 게시글 ID 배열
+   * @returns {Promise<Object>} - 게시글 상태 정보
+   */
+  getBatchPostsData: (postIds) => {
+    return apiPost(`${API_URL}${ENDPOINTS.POST.BASE}/batch`, { postIds });
+  },
+  
+  /**
+   * 게시글 좋아요 상태 조회
+   * @param {string} id - 게시글 ID
+   * @returns {Promise<Object>} - 좋아요 상태
+   */
+  getLikeStatus: (id) => {
+    return apiGet(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}/like`);
+  },
+  
+  /**
+   * 게시글 좋아요 토글
+   * @param {string} id - 게시글 ID
+   * @returns {Promise<Object>} - 변경된 좋아요 상태
+   */
+  toggleLike: (id) => {
+    return apiPost(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}/like`);
+  },
+  
+  /**
+   * 게시글 북마크 상태 조회
+   * @param {string} id - 게시글 ID
+   * @returns {Promise<Object>} - 북마크 상태
+   */
+  getBookmarkStatus: (id) => {
+    return apiGet(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}/bookmark`);
+  },
+  
+  /**
+   * 게시글 북마크 토글
+   * @param {string} id - 게시글 ID
+   * @returns {Promise<Object>} - 변경된 북마크 상태
+   */
+  toggleBookmark: (id) => {
+    return apiPost(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}/bookmark`);
+  },
+  
+  /**
+   * 내 게시글 조회
+   * @returns {Promise<Array>} - 내 게시글 목록
+   */
+  getMyPosts: () => {
+    return apiGet(`${API_URL}${ENDPOINTS.POST.MY}`);
+  },
+  
+  /**
+   * 특정 사용자의 게시글 조회
+   * @param {string} username - 사용자 이름
+   * @returns {Promise<Array>} - 사용자 게시글 목록
+   */
+  getPostsByUsername: (username) => {
+    return apiGet(`${API_URL}${ENDPOINTS.USER.PROFILE(username)}/posts`);
+  },
+  
+  /**
+   * 좋아요한 게시글 조회
+   * @returns {Promise<Array>} - 좋아요한 게시글 목록
+   */
+  getLikedPosts: () => {
+    return apiGet(`${API_URL}${ENDPOINTS.POST.LIKED}`);
+  },
+  
+  /**
+   * 북마크한 게시글 조회
+   * @returns {Promise<Array>} - 북마크한 게시글 목록
+   */
+  getBookmarkedPosts: () => {
+    return apiGet(`${API_URL}${ENDPOINTS.POST.BOOKMARKED}`);
+  },
+  
+  /**
+   * 게시글 검색
+   * @param {string} keyword - 검색어
+   * @param {number} page - 페이지 번호
+   * @param {number} size - 페이지 크기
+   * @returns {Promise<Array>} - 검색 결과 게시글 목록
+   */
+  searchPosts: (keyword, page = 0, size = 10) => {
+    return apiGet(`${API_URL}${ENDPOINTS.POST.SEARCH}`, { keyword, page, size });
+  },
+  
+  /**
+   * 팔로우한 사용자들의 게시글 조회
+   * @returns {Promise<Array>} - 팔로우한 사용자들의 게시글 목록
+   */
+  getFollowingsPosts: () => {
+    return apiGet(`${API_URL}${ENDPOINTS.POST.FOLLOWINGS}`);
+  },
+  
+  /**
+   * 팔로우한 사용자들의 게시글 커서 기반 조회
+   * @param {string|null} createdAt - 마지막 게시글 생성 시간
+   * @param {string|null} id - 마지막 게시글 ID
+   * @param {number} limit - 조회할 개수
+   * @returns {Promise<Object>} - 게시글 목록과 다음 커서
+   */
+  getFollowingsPostsWithCursor: (createdAt = null, id = null, limit = 20) => {
+    const params = { limit };
+    if (createdAt) params.createdAt = createdAt;
+    if (id) params.id = id;
+    
+    return apiGet(`${API_URL}${ENDPOINTS.POST.FOLLOWINGS_CURSOR}`, params);
+  },
+  
+  /**
+   * 홈 화면에 필요한 모든 데이터 한 번에 가져오기
+   * @returns {Promise<Object>} - 최신 게시글, 팔로잉 게시글, 알림 등 홈 데이터
+   */
+  getHomePageData: async () => {
+    try {
+      // Promise.all을 사용하여 여러 API를 병렬로 호출
+      const [latestPostsResponse, followingPostsResponse] = await Promise.all([
+        apiGet(`${API_URL}${ENDPOINTS.POST.BASE}`, { page: 0, size: 5 }),  // 최신 게시글 5개
+        apiGet(`${API_URL}${ENDPOINTS.POST.FOLLOWINGS}`), // 팔로우 게시글
+        // 알림 API (향후 구현)
+      ]);
+      
+      // 결과를 하나의 객체로 병합
+      return {
+        latestPosts: latestPostsResponse || [],
+        followingPosts: followingPostsResponse || [],
+        notifications: [] // 알림 기능 구현 시 추가
+      };
+    } catch (error) {
+      console.error('Error fetching home page data:', error);
+      // 에러가 발생해도 기본 데이터 반환
+      return {
+        latestPosts: [],
+        followingPosts: [],
+        notifications: []
+      };
     }
+  },
+  
+  /**
+   * 특정 사용자의 대시보드 데이터 조회
+   * @param {string} username - 사용자 이름
+   * @returns {Promise<Object>} - 사용자의 게시글, 댓글, 좋아요, 북마크 데이터
+   */
+  getUserDashboardData: async (username) => {
+    try {
+      // Promise.all을 사용하여 병렬로 여러 API 호출
+      const [userPosts, userComments, userLikes, userBookmarks] = await Promise.all([
+        apiGet(`${API_URL}${ENDPOINTS.USER.PROFILE(username)}/posts`),
+        apiGet(`${API_URL}${ENDPOINTS.USER.PROFILE(username)}/comments`),
+        apiGet(`${API_URL}${ENDPOINTS.USER.PROFILE(username)}/likes`),
+        apiGet(`${API_URL}${ENDPOINTS.USER.PROFILE(username)}/bookmarks`)
+      ]);
+      
+      // 결과를 하나의 객체로 병합
+      return {
+        posts: userPosts || [],
+        comments: userComments || [],
+        likes: userLikes || [],
+        bookmarks: userBookmarks || []
+      };
+    } catch (error) {
+      console.error(`Error fetching dashboard data for ${username}:`, error);
+      // 에러가 발생해도 기본 데이터 반환
+      return {
+        posts: [],
+        comments: [],
+        likes: [],
+        bookmarks: []
+      };
+    }
+  }
 };

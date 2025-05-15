@@ -24,7 +24,12 @@ export const commentApi = {
 
     // 사용자의 댓글 목록 조회
     getMyComments: (token) => {
-        return axios.get(`${API_URL}/posts/0/comments/my`, getAuthHeader(token));
+        try {
+            return axios.get(`${API_URL}/comments/my`, getAuthHeader(token));
+        } catch (error) {
+            console.error('Error in getMyComments API call:', error);
+            throw error;
+        }
     },
 
     // 특정 사용자의 댓글 목록 조회

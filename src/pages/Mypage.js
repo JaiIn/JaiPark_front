@@ -7,7 +7,7 @@ import { userService } from '../services/userService';
 import profileDefault from '../assets/profile-default.png';
 
 const Mypage = () => {
-    const { user, isAuthenticated, setUser } = useAuth();
+    const { user, isAuthenticated } = useAuth();
     const navigate = useNavigate();
     const [myPosts, setMyPosts] = useState([]);
     const [likedPosts, setLikedPosts] = useState([]);
@@ -31,11 +31,12 @@ const Mypage = () => {
         // 내 정보 최신화
         const fetchUserInfo = async () => {
             try {
-                const userInfo = await userService.getMe();
-                if (userInfo) {
-                    setUser(userInfo);
-                }
-            } catch (e) {}
+                // 사용자 정보를 가져오는 호출을 하지 않도록 수정
+                // AuthContext에서 이미 처리함
+            } catch (e) {
+                console.error('사용자 정보 로드 중 오류:', e);
+                setError('사용자 정보를 불러오는데 실패했습니다.');
+            }
         };
         fetchUserInfo();
 
@@ -44,16 +45,38 @@ const Mypage = () => {
 
             try {
                 setIsLoading(true);
-                const [posts, liked, bookmarked, comments] = await Promise.all([
-                    postService.getPostsByUsername(user.username),
-                    postService.getLikedPosts(user.username),
-                    postService.getBookmarkedPosts(user.username),
-                    commentService.getCommentsByUsername(user.username)
-                ]);
-                setMyPosts(posts);
-                setLikedPosts(liked);
-                setBookmarkedPosts(bookmarked);
-                setMyComments(comments);
+                // 각 API를 따로 호출하여 오류 처리를 효과적으로 함
+                try {
+                    const posts = await userService.getMyPosts();
+                    setMyPosts(posts || []);
+                } catch (error) {
+                    console.error('Error fetching user posts:', error);
+                    setMyPosts([]);
+                }
+                
+                try {
+                    const liked = await postService.getLikedPosts();
+                    setLikedPosts(liked || []);
+                } catch (error) {
+                    console.error('Error fetching liked posts:', error);
+                    setLikedPosts([]);
+                }
+                
+                try {
+                    const bookmarked = await postService.getBookmarkedPosts();
+                    setBookmarkedPosts(bookmarked || []);
+                } catch (error) {
+                    console.error('Error fetching bookmarked posts:', error);
+                    setBookmarkedPosts([]);
+                }
+                
+                try {
+                    const comments = await commentService.getMyComments();
+                    setMyComments(comments || []);
+                } catch (error) {
+                    console.error('Error fetching user comments:', error);
+                    setMyComments([]);
+                }
             } catch (error) {
                 console.error('Error fetching user data:', error);
                 setError('데이터를 불러오는데 실패했습니다.');

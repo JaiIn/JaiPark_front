@@ -32,7 +32,16 @@ export const AuthProvider = ({ children }) => {
                     const userInfo = await userService.getMe();
                     setUser(userInfo);
                 } catch (e) {
-                    setUser(getUserFromToken(token));
+                    console.error('AuthContext 사용자 정보 로드 중 오류:', e);
+                    // 토큰에서 가져온 기본 정보로 대체
+                    const tokenUser = getUserFromToken(token);
+                    if (tokenUser) {
+                        setUser(tokenUser);
+                    } else {
+                        // 토큰이 유효하지 않은 경우 인증 상태 초기화
+                        setIsAuthenticated(false);
+                        localStorage.removeItem('token');
+                    }
                 }
             }
             setLoading(false);

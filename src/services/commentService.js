@@ -28,9 +28,16 @@ export const commentService = {
     },
 
     getMyComments: async () => {
-        const token = localStorage.getItem('token');
-        const response = await commentApi.getMyComments(token);
-        return response.data;
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return [];
+            
+            const response = await commentApi.getMyComments(token);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching my comments:', error);
+            return [];
+        }
     },
 
     // 사용자의 댓글 목록 조회
