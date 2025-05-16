@@ -53,14 +53,14 @@ const PostForm = () => {
         try {
             setIsLoading(true);
             if (isEdit) {
-                await postService.updatePost(id, formData.title, formData.content);
+                await postService.updatePost(id, formData); // 객체 전체 전달
             } else {
-                await postService.createPost(formData.title, formData.content);
+                await postService.createPost(formData); // 객체 전체 전달
             }
             navigate('/posts');
         } catch (error) {
             setError(isEdit ? '게시글 수정에 실패했습니다.' : '게시글 작성에 실패했습니다.');
-            console.error(error);
+            console.error('게시글 저장 오류:', error);
         } finally {
             setIsLoading(false);
         }

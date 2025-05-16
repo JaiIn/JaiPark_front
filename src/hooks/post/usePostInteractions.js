@@ -41,14 +41,20 @@ export function usePostInteractions(initialPosts = []) {
       const result = await postService.toggleLike(postId, token);
       console.log('usePostInteractions - 좋아요 응답:', result?.data);
       
+      // 좋아요 상태 가져오기
+      const liked = result?.data?.liked || false;
+      
       // 좋아요 ID 목록 업데이트
       setLikedPostIds(prev => {
-        const isLiked = prev.includes(postId);
-        const newIds = isLiked 
-          ? prev.filter(id => id !== postId) 
-          : [...prev, postId];
+        const newIds = liked
+          ? [...new Set([...prev, postId])]
+          : prev.filter(id => id !== postId);
           
-        console.log('usePostInteractions - 좋아요 상태 변경:', { postId, 이전상태: isLiked, 새목록: newIds });
+        console.log('usePostInteractions - 좋아요 상태 변경:', { 
+          postId, 
+          서버응답: liked, 
+          새목록: newIds 
+        });
         return newIds;
       });
       
@@ -56,13 +62,10 @@ export function usePostInteractions(initialPosts = []) {
       setPosts(prev => {
         return prev.map(post => {
           if (post.id === postId) {
-            const isCurrentlyLiked = likedPostIds.includes(postId);
             return {
               ...post,
-              isLiked: !isCurrentlyLiked,
-              likeCount: isCurrentlyLiked 
-                ? Math.max(0, (post.likeCount || 0) - 1) 
-                : (post.likeCount || 0) + 1
+              isLiked: liked,
+              likeCount: result?.data?.count || post.likeCount || 0
             };
           }
           return post;
@@ -71,7 +74,7 @@ export function usePostInteractions(initialPosts = []) {
     } catch (error) {
       console.error('좋아요 처리 중 오류:', error);
     }
-  }, [likedPostIds]);
+  }, []);
   
   // 북마크 처리
   const handleBookmark = useCallback(async (postId) => {
@@ -83,14 +86,20 @@ export function usePostInteractions(initialPosts = []) {
       const result = await postService.toggleBookmark(postId, token);
       console.log('usePostInteractions - 북마크 응답:', result?.data);
       
+      // 북마크 상태 가져오기 
+      const bookmarked = result?.data?.bookmarked || false;
+      
       // 북마크 ID 목록 업데이트
       setBookmarkedPostIds(prev => {
-        const isBookmarked = prev.includes(postId);
-        const newIds = isBookmarked 
-          ? prev.filter(id => id !== postId) 
-          : [...prev, postId];
+        const newIds = bookmarked
+          ? [...new Set([...prev, postId])]
+          : prev.filter(id => id !== postId);
           
-        console.log('usePostInteractions - 북마크 상태 변경:', { postId, 이전상태: isBookmarked, 새목록: newIds });
+        console.log('usePostInteractions - 북마크 상태 변경:', { 
+          postId, 
+          서버응답: bookmarked, 
+          새목록: newIds 
+        });
         return newIds;
       });
       
@@ -100,7 +109,8 @@ export function usePostInteractions(initialPosts = []) {
           if (post.id === postId) {
             return {
               ...post,
-              isBookmarked: !bookmarkedPostIds.includes(postId)
+              isBookmarked: bookmarked,
+              bookmarkCount: result?.data?.count || post.bookmarkCount || 0
             };
           }
           return post;
@@ -109,7 +119,7 @@ export function usePostInteractions(initialPosts = []) {
     } catch (error) {
       console.error('북마크 처리 중 오류:', error);
     }
-  }, [bookmarkedPostIds]);
+  }, []);
   
   // 댓글 수 계산 객체 생성
   const commentCounts = posts.reduce((acc, post) => {

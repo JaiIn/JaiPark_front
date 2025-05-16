@@ -25,6 +25,13 @@ const Chat = () => {
     const [following, setFollowing] = useState([]);
     const [loadingFollowing, setLoadingFollowing] = useState(false);
 
+    // 알림 권한 요청
+    useEffect(() => {
+        if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+    }, []);
+
     // 채팅방 목록 및 메시지 로드
     useEffect(() => {
         if (isAuthenticated) {
@@ -184,6 +191,34 @@ const Chat = () => {
 
     // 새 메시지 처리
     const handleNewMessage = (newMessage) => {
+        const isMyMessage = newMessage.senderId === user.username;
+        
+        // 알림 표시 (내가 보낸 메시지가 아닌 경우에만)
+        if (!isMyMessage) {
+            // 웹 알림 API가 지원되는지 확인
+            if ("Notification" in window) {
+                // 알림 권한 요청
+                if (Notification.permission === "granted") {
+                    // 새 메시지 알림 생성
+                    const notification = new Notification(
+                        `새 메시지: ${newMessage.senderId}`, {
+                            body: newMessage.content,
+                            icon: defaultProfileImage
+                        }
+                    );
+                    
+                    // 5초 후 알림 자동 닫기
+                    setTimeout(() => {
+                        notification.close();
+                    }, 5000);
+                }
+                // 알림 권한이 없는 경우 권한 요청
+                else if (Notification.permission !== "denied") {
+                    Notification.requestPermission();
+                }
+            }
+        }
+        
         // 현재 채팅방의 메시지인지 확인
         if (selectedRoom && selectedRoom.otherUserId === newMessage.senderId) {
             // 메시지 목록에 추가
@@ -211,7 +246,7 @@ const Chat = () => {
                 };
                 
                 // 안 읽은 메시지 수 업데이트
-                if (selectedRoom?.otherUserId !== newMessage.senderId) {
+                if (!isMyMessage && selectedRoom?.otherUserId !== newMessage.senderId) {
                     updatedRooms[roomIndex].unreadCount = 
                         (updatedRooms[roomIndex].unreadCount || 0) + 1;
                 }
@@ -607,10 +642,11 @@ const Chat = () => {
                                     <input
                                         type="text"
                                         placeholder="메시지를 입력하세요..."
-                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white"
                                         value={message}
                                         onChange={handleMessageChange}
                                         onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                                        style={{ backgroundColor: '#333' }}
                                     />
                                     <button
                                         className="px-4 py-2 bg-indigo-500 text-white rounded-r-lg hover:bg-indigo-600"

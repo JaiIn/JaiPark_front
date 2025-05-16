@@ -98,7 +98,23 @@ export const postService = {
    * @returns {Promise<Object>} - 생성된 게시글 정보
    */
   createPost: (data) => {
-    return apiPost(`${API_URL}${ENDPOINTS.POST.BASE}`, data);
+    console.log('게시글 작성 요청:', data);
+    const token = localStorage.getItem('token');
+    
+    return axios.post(`${API_URL}${ENDPOINTS.POST.BASE}`, data, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    .then(response => {
+      console.log('게시글 작성 성공:', response.data);
+      return response.data;
+    })
+    .catch(error => {
+      console.error('게시글 작성 실패:', error.response || error);
+      throw error;
+    });
   },
   
   /**
@@ -108,7 +124,23 @@ export const postService = {
    * @returns {Promise<Object>} - 수정된 게시글 정보
    */
   updatePost: (id, data) => {
-    return apiPut(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}`, data);
+    console.log('게시글 수정 요청:', { id, data });
+    const token = localStorage.getItem('token');
+    
+    return axios.put(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}`, data, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    .then(response => {
+      console.log('게시글 수정 성공:', response.data);
+      return response.data;
+    })
+    .catch(error => {
+      console.error('게시글 수정 실패:', error.response || error);
+      throw error;
+    });
   },
   
   /**

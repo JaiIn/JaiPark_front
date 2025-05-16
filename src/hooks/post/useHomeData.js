@@ -31,14 +31,13 @@ export function useHomeData() {
       
       if (result) {
         // 데이터 구조화 및 타입 검사
-        // 개선된 게시글 데이터: 좋아요, 댓글, 북마크 수 추가
+        // 개선된 게시글 데이터: 백엔드에서 받아온 상태 그대로 사용
         const enhancedFollowingPosts = (result.followingPosts || []).map(post => ({
           ...post,
           likeCount: post.likeCount || 0,
           commentCount: post.comments ? post.comments.length : 0,
-          bookmarkCount: post.bookmarkCount || 0,
-          isLiked: (result.likedPosts || []).some(likedPost => likedPost.id === post.id),
-          isBookmarked: (result.bookmarkedPosts || []).some(bookmarkedPost => bookmarkedPost.id === post.id)
+          bookmarkCount: post.bookmarkCount || 0
+          // 백엔드에서 받아온 isLiked, isBookmarked 그대로 사용
         }));
         
         const formattedData = {
