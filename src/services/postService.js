@@ -1,5 +1,45 @@
-import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api';
+import { postApi } from './api/postApi';
+import { homeService } from './homeService';
 import { API_URL, ENDPOINTS } from '../api/apiConfig';
+import axios from 'axios';
+
+// API 유틸리티 함수
+// 기본 GET 요청
+const apiGet = (url, params = {}) => {
+  const token = localStorage.getItem('token');
+  return axios.get(url, {
+    params,
+    headers: token ? { Authorization: `Bearer ${token}` } : {}
+  })
+  .then(response => response.data);
+};
+
+// 기본 POST 요청
+const apiPost = (url, data = {}) => {
+  const token = localStorage.getItem('token');
+  return axios.post(url, data, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {}
+  })
+  .then(response => response.data);
+};
+
+// 기본 PUT 요청
+const apiPut = (url, data = {}) => {
+  const token = localStorage.getItem('token');
+  return axios.put(url, data, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {}
+  })
+  .then(response => response.data);
+};
+
+// 기본 DELETE 요청
+const apiDelete = (url) => {
+  const token = localStorage.getItem('token');
+  return axios.delete(url, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {}
+  })
+  .then(response => response.data);
+};
 
 /**
  * 게시글 관련 API 서비스
@@ -12,7 +52,7 @@ export const postService = {
    * @returns {Promise<Array>} - 게시글 목록
    */
   getPosts: (page = 0, size = 10) => {
-    return apiGet(`${API_URL}${ENDPOINTS.POST.BASE}`, { page, size });
+    return postApi.getPosts(page, size);
   },
   
   /**
@@ -101,10 +141,25 @@ export const postService = {
   /**
    * 게시글 좋아요 토글
    * @param {string} id - 게시글 ID
+   * @param {string} token - 인증 토큰 (선택적)
    * @returns {Promise<Object>} - 변경된 좋아요 상태
    */
-  toggleLike: (id) => {
-    return apiPost(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}/like`);
+  toggleLike: (id, providedToken = null) => {
+    // 토큰 확인
+    const token = providedToken || localStorage.getItem('token');
+    // 데이터 로깅
+    console.log('postService.toggleLike - 요청:', { id, token: token ? '있음' : '없음' });
+    return axios.post(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}/like`, {}, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+    .then(response => {
+      console.log('postService.toggleLike - 응답:', response.data);
+      return response.data;
+    })
+    .catch(error => {
+      console.error('postService.toggleLike - 오류:', error);
+      throw error;
+    });
   },
   
   /**
@@ -119,10 +174,25 @@ export const postService = {
   /**
    * 게시글 북마크 토글
    * @param {string} id - 게시글 ID
+   * @param {string} token - 인증 토큰 (선택적)
    * @returns {Promise<Object>} - 변경된 북마크 상태
    */
-  toggleBookmark: (id) => {
-    return apiPost(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}/bookmark`);
+  toggleBookmark: (id, providedToken = null) => {
+    // 토큰 확인
+    const token = providedToken || localStorage.getItem('token');
+    // 데이터 로깅
+    console.log('postService.toggleBookmark - 요청:', { id, token: token ? '있음' : '없음' });
+    return axios.post(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}/bookmark`, {}, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+    .then(response => {
+      console.log('postService.toggleBookmark - 응답:', response.data);
+      return response.data;
+    })
+    .catch(error => {
+      console.error('postService.toggleBookmark - 오류:', error);
+      throw error;
+    });
   },
   
   /**
@@ -197,49 +267,7 @@ export const postService = {
    * @returns {Promise<Object>} - 최신 게시글, 팔로잉 게시글, 알림 등 홈 데이터
    */
   getHomePageData: async () => {
-    try {
-      // Promise.all을 사용하여 여러 API를 병렬로 호출
-      const [
-        latestPostsResponse, 
-        followingPostsResponse, 
-        likedPostsResponse, 
-        bookmarkedPostsResponse
-      ] = await Promise.all([
-        apiGet(`${API_URL}${ENDPOINTS.POST.BASE}`, { page: 0, size: 5 }),  // 최신 게시글 5개
-        apiGet(`${API_URL}${ENDPOINTS.POST.FOLLOWINGS}`), // 팔로우 게시글
-        apiGet(`${API_URL}${ENDPOINTS.POST.LIKED}`), // 좋아요 상태 확인용
-        apiGet(`${API_URL}${ENDPOINTS.POST.BOOKMARKED}`), // 북마크 상태 확인용
-        // 알림 API (향후 구현)
-      ]);
-      
-      // 좋아요/북마크 상태 추출
-      const likedPostIds = (likedPostsResponse || []).map(post => post.id);
-      const bookmarkedPostIds = (bookmarkedPostsResponse || []).map(post => post.id);
-      
-      // 팔로잉 게시글에 좋아요/북마크 상태 추가
-      const followingPosts = (followingPostsResponse || []).map(post => ({
-        ...post,
-        isLiked: likedPostIds.includes(post.id),
-        isBookmarked: bookmarkedPostIds.includes(post.id)
-      }));
-      
-      console.log('Enhanced following posts with like/bookmark data:', followingPosts);
-      
-      // 결과를 하나의 객체로 병합
-      return {
-        latestPosts: latestPostsResponse || [],
-        followingPosts: followingPosts,
-        notifications: [] // 알림 기능 구현 시 추가
-      };
-    } catch (error) {
-      console.error('Error fetching home page data:', error);
-      // 에러가 발생해도 기본 데이터 반환
-      return {
-        latestPosts: [],
-        followingPosts: [],
-        notifications: []
-      };
-    }
+    return homeService.getHomePageData();
   },
   
   /**

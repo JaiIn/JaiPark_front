@@ -60,11 +60,13 @@ const PostList = ({
       } else {
         newLikes.add(postId);
       }
+      console.log('PostList - 좋아요 로컬 상태 업데이트:', Array.from(newLikes));
       return newLikes;
     });
     
     // 상위 컴포넌트 핸들러 호출
     if (onPostLike) {
+      console.log('PostList - 좋아요 핸들러 호출:', { postId });
       onPostLike(postId);
     }
   }, [isAuthenticated, navigate, onPostLike]);
@@ -84,11 +86,13 @@ const PostList = ({
       } else {
         newBookmarks.add(postId);
       }
+      console.log('PostList - 북마크 로컬 상태 업데이트:', Array.from(newBookmarks));
       return newBookmarks;
     });
     
     // 상위 컴포넌트 핸들러 호출
     if (onPostBookmark) {
+      console.log('PostList - 북마크 핸들러 호출:', { postId });
       onPostBookmark(postId);
     }
   }, [isAuthenticated, navigate, onPostBookmark]);

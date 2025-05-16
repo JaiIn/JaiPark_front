@@ -1,11 +1,14 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { postService } from '../services/postService';
-import { useDataFetching, usePagination } from '../hooks/common/dataHooks';
+import { usePagination } from '../hooks/common/dataHooks';
 import { LoadingSpinner, Alert } from '../components/common/UIComponents';
 import PostList from '../components/posts/PostList';
 import { FaPlus, FaUser } from 'react-icons/fa';
+
+// 커스텀 훅
+import { useHomeData } from '../hooks/post/useHomeData';
+import { usePostInteractions } from '../hooks/post/usePostInteractions';
 
 /**
  * 홈 페이지 컴포넌트
@@ -15,20 +18,17 @@ const Home = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   
-  // 데이터 로딩 커스텀 훅 사용
-  const { 
-    data, 
-    loading, 
-    error, 
-    fetchData: fetchHomeData 
-  } = useDataFetching(postService.getHomePageData);
+  // 홈 데이터 관리 커스텀 훅 사용
+  const { homeData, loading, error, loadHomeData, totalFollowingPosts } = useHomeData();
   
-  // 데이터 구조 초기화
-  const [homeData, setHomeData] = useState({
-    latestPosts: [],
-    followingPosts: [],
-    notifications: []
-  });
+  // 게시글 상호작용 커스텀 훅 사용
+  const { 
+    likedPostIds, 
+    bookmarkedPostIds, 
+    commentCounts,
+    handleLike,
+    handleBookmark 
+  } = usePostInteractions(homeData.followingPosts);
   
   // 페이지네이션 커스텀 훅 사용
   const { 
@@ -38,10 +38,6 @@ const Home = () => {
     goToPage 
   } = usePagination(0, 10);
   
-  // 게시글 상호작용 상태
-  const [likedPostIds, setLikedPostIds] = useState([]);
-  const [bookmarkedPostIds, setBookmarkedPostIds] = useState([]);
-  
   // 초기 데이터 로드
   useEffect(() => {
     if (!isAuthenticated) {
@@ -49,121 +45,25 @@ const Home = () => {
       return;
     }
     
-    const loadData = async () => {
-      try {
-        const result = await fetchHomeData();
-        if (result) {
-          setHomeData({
-            latestPosts: Array.isArray(result.latestPosts) ? result.latestPosts : [],
-            followingPosts: Array.isArray(result.followingPosts) ? result.followingPosts : [],
-            notifications: Array.isArray(result.notifications) ? result.notifications : []
-          });
-          
-          // 게시글에서 좋아요/북마크 상태 추출
-          console.log('Home page data received:', result);
-          const likedIds = result.followingPosts
-            ?.filter(post => post.isLiked === true)
-            ?.map(post => post.id) || [];
-            
-          const bookmarkedIds = result.followingPosts
-            ?.filter(post => post.isBookmarked === true)
-            ?.map(post => post.id) || [];
-            
-          console.log('Extracted liked posts:', likedIds);
-          console.log('Extracted bookmarked posts:', bookmarkedIds);
-            
-          setLikedPostIds(likedIds);
-          setBookmarkedPostIds(bookmarkedIds);
-          
-          // 총 게시글 수 설정
-          const totalPosts = result.followingPosts?.length || 0;
-          setTotalItems(totalPosts);
-        }
-      } catch (err) {
-        // 에러는 useDataFetching 내부에서 처리됨
-        console.error('홈 데이터 로드 실패:', err);
-      }
-    };
-    
-    loadData();
-  }, [isAuthenticated, navigate, fetchHomeData, setTotalItems]);
+    console.log('홈 화면 데이터 로드 시작');
+    loadHomeData()
+      .then(() => {
+        console.log('홈 화면 데이터 로드 완료');
+      })
+      .catch(err => {
+        console.error('홈 화면 데이터 로드 오류:', err);
+      });
+  }, [isAuthenticated, navigate, loadHomeData]);
+  
+  // 총 게시글 수 설정
+  useEffect(() => {
+    setTotalItems(totalFollowingPosts);
+  }, [totalFollowingPosts, setTotalItems]);
   
   // 환영 메시지
   const welcomeMessage = useMemo(() => {
     return user ? `안녕하세요, ${user.nickname || user.username}님!` : '홈';
   }, [user]);
-  
-  // 좋아요 처리
-  const handlePostLike = async (postId) => {
-    try {
-      await postService.toggleLike(postId);
-      // 좋아요 상태 업데이트
-      setLikedPostIds(prev => {
-        const newState = prev.includes(postId) 
-          ? prev.filter(id => id !== postId) 
-          : [...prev, postId];
-        console.log('Updated liked posts state:', newState);
-        return newState;
-      });
-      
-      // 홈데이터의 게시글 상태도 업데이트
-      setHomeData(prev => {
-        const updatedPosts = prev.followingPosts.map(post => {
-          if (post.id === postId) {
-            const wasLiked = likedPostIds.includes(postId);
-            return {
-              ...post,
-              isLiked: !wasLiked,
-              likeCount: wasLiked ? (post.likeCount > 0 ? post.likeCount - 1 : 0) : post.likeCount + 1
-            };
-          }
-          return post;
-        });
-        
-        return {
-          ...prev,
-          followingPosts: updatedPosts
-        };
-      });
-    } catch (err) {
-      console.error('좋아요 처리 중 오류:', err);
-    }
-  };
-  
-  // 북마크 처리
-  const handlePostBookmark = async (postId) => {
-    try {
-      await postService.toggleBookmark(postId);
-      // 북마크 상태 업데이트
-      setBookmarkedPostIds(prev => {
-        const newState = prev.includes(postId) 
-          ? prev.filter(id => id !== postId) 
-          : [...prev, postId];
-        console.log('Updated bookmarked posts state:', newState);
-        return newState;
-      });
-      
-      // 홈데이터의 게시글 상태도 업데이트
-      setHomeData(prev => {
-        const updatedPosts = prev.followingPosts.map(post => {
-          if (post.id === postId) {
-            return {
-              ...post,
-              isBookmarked: !bookmarkedPostIds.includes(postId)
-            };
-          }
-          return post;
-        });
-        
-        return {
-          ...prev,
-          followingPosts: updatedPosts
-        };
-      });
-    } catch (err) {
-      console.error('북마크 처리 중 오류:', err);
-    }
-  };
   
   // 전체 화면 로딩 중 표시
   if (loading && !homeData.followingPosts.length) {
@@ -198,14 +98,11 @@ const Home = () => {
             totalPages={totalPages}
             onPageChange={goToPage}
             postCardVariant="default"
-            onPostLike={handlePostLike}
-            onPostBookmark={handlePostBookmark}
+            onPostLike={handleLike}
+            onPostBookmark={handleBookmark}
             likedPosts={likedPostIds}
             bookmarkedPosts={bookmarkedPostIds}
-            commentCounts={homeData.followingPosts.reduce((acc, post) => {
-              acc[post.id] = post.commentCount || 0;
-              return acc;
-            }, {})}
+            commentCounts={commentCounts}
           />
         </div>
         

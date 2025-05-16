@@ -106,5 +106,47 @@ export const postApi = {
         if (id) url.searchParams.set('id', id);
         url.searchParams.set('limit', limit);
         return axios.get(url.toString(), getAuthHeader(token));
+    },
+    
+    // 홈 페이지 데이터를 한 번에 가져오는 메서드
+    getHomePageData: async () => {
+        try {
+            console.log('postApi: 홈 페이지 데이터 로드 시작');
+            const token = localStorage.getItem('token');
+            console.log('postApi: 토큰 확인', token ? '토큰 있음' : '토큰 없음');
+            
+            // 병렬로 여러 API 호출 실행
+            console.log('postApi: API 호출 시작');
+            const [latestPostsRes, followingPostsRes, likedPostsRes, bookmarkedPostsRes] = await Promise.all([
+                axios.get(`${API_URL}/posts?page=0&size=5`),
+                axios.get(`${API_URL}/posts/followings`, getAuthHeader(token)),
+                axios.get(`${API_URL}/posts/liked`, getAuthHeader(token)),
+                axios.get(`${API_URL}/posts/bookmarked`, getAuthHeader(token))
+            ]);
+            
+            // 응답에서 데이터 추출
+            console.log('postApi: 응답 데이터', {
+                latestPostsCount: latestPostsRes?.data?.content?.length || 0,
+                followingPostsCount: followingPostsRes?.data?.length || 0,
+                likedPostsCount: likedPostsRes?.data?.length || 0,
+                bookmarkedPostsCount: bookmarkedPostsRes?.data?.length || 0
+            });
+            
+            return {
+                latestPosts: latestPostsRes.data.content || [],
+                followingPosts: followingPostsRes.data || [],
+                likedPosts: likedPostsRes.data || [],
+                bookmarkedPosts: bookmarkedPostsRes.data || []
+            };
+        } catch (error) {
+            console.error('postApi: 홈 페이지 데이터 로드 중 오류:', error);
+            // 오류 발생 시 빈 데이터 반환
+            return {
+                latestPosts: [],
+                followingPosts: [],
+                likedPosts: [],
+                bookmarkedPosts: []
+            };
+        }
     }
 };

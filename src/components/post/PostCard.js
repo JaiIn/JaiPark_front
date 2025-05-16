@@ -118,10 +118,11 @@ const PostCard = ({
               data-testid={`bookmark-button-${post.id}`}
             >
               {isBookmarked ? (
-                <FaBookmark className="text-indigo-500" />
+                <FaBookmark className="text-indigo-500 mr-1" />
               ) : (
-                <FaRegBookmark className="text-gray-400" />
+                <FaRegBookmark className="text-gray-400 mr-1" />
               )}
+              <span>{post.bookmarkCount || 0}</span>
             </button>
           </div>
         )}
