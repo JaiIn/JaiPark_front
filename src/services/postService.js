@@ -5,40 +5,60 @@ import axios from 'axios';
 
 // API 유틸리티 함수
 // 기본 GET 요청
-const apiGet = (url, params = {}) => {
-  const token = localStorage.getItem('token');
-  return axios.get(url, {
-    params,
-    headers: token ? { Authorization: `Bearer ${token}` } : {}
-  })
-  .then(response => response.data);
+const apiGet = async (url, params = {}) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(url, {
+      params,
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return response.data || {};
+  } catch (error) {
+    console.error(`GET 요청 오류 (${url}):`, error);
+    throw error;
+  }
 };
 
 // 기본 POST 요청
-const apiPost = (url, data = {}) => {
-  const token = localStorage.getItem('token');
-  return axios.post(url, data, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {}
-  })
-  .then(response => response.data);
+const apiPost = async (url, data = {}) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(url, data, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return response.data || {};
+  } catch (error) {
+    console.error(`POST 요청 오류 (${url}):`, error);
+    throw error;
+  }
 };
 
 // 기본 PUT 요청
-const apiPut = (url, data = {}) => {
-  const token = localStorage.getItem('token');
-  return axios.put(url, data, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {}
-  })
-  .then(response => response.data);
+const apiPut = async (url, data = {}) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.put(url, data, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return response.data || {};
+  } catch (error) {
+    console.error(`PUT 요청 오류 (${url}):`, error);
+    throw error;
+  }
 };
 
 // 기본 DELETE 요청
-const apiDelete = (url) => {
-  const token = localStorage.getItem('token');
-  return axios.delete(url, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {}
-  })
-  .then(response => response.data);
+const apiDelete = async (url) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.delete(url, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    return response.data || {};
+  } catch (error) {
+    console.error(`DELETE 요청 오류 (${url}):`, error);
+    throw error;
+  }
 };
 
 /**
@@ -176,22 +196,25 @@ export const postService = {
    * @param {string} token - 인증 토큰 (선택적)
    * @returns {Promise<Object>} - 변경된 좋아요 상태
    */
-  toggleLike: (id, providedToken = null) => {
-    // 토큰 확인
-    const token = providedToken || localStorage.getItem('token');
-    // 데이터 로깅
-    console.log('postService.toggleLike - 요청:', { id, token: token ? '있음' : '없음' });
-    return axios.post(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}/like`, {}, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    })
-    .then(response => {
-      console.log('postService.toggleLike - 응답:', response.data);
-      return response.data;
-    })
-    .catch(error => {
+  toggleLike: async (id, providedToken = null) => {
+    try {
+      // 토큰 확인
+      const token = providedToken || localStorage.getItem('token');
+      // 데이터 로깅
+      console.log('postService.toggleLike - 요청:', { id, token: token ? '있음' : '없음' });
+      
+      const response = await axios.post(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}/like`, {}, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      
+      const responseData = response.data || {};
+      console.log('postService.toggleLike - 응답:', responseData);
+      return responseData;
+    } catch (error) {
       console.error('postService.toggleLike - 오류:', error);
-      throw error;
-    });
+      // 오류 발생 시 기본 값 반환
+      return { liked: false, count: 0 };
+    }
   },
   
   /**
@@ -209,22 +232,25 @@ export const postService = {
    * @param {string} token - 인증 토큰 (선택적)
    * @returns {Promise<Object>} - 변경된 북마크 상태
    */
-  toggleBookmark: (id, providedToken = null) => {
-    // 토큰 확인
-    const token = providedToken || localStorage.getItem('token');
-    // 데이터 로깅
-    console.log('postService.toggleBookmark - 요청:', { id, token: token ? '있음' : '없음' });
-    return axios.post(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}/bookmark`, {}, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    })
-    .then(response => {
-      console.log('postService.toggleBookmark - 응답:', response.data);
-      return response.data;
-    })
-    .catch(error => {
+  toggleBookmark: async (id, providedToken = null) => {
+    try {
+      // 토큰 확인
+      const token = providedToken || localStorage.getItem('token');
+      // 데이터 로깅
+      console.log('postService.toggleBookmark - 요청:', { id, token: token ? '있음' : '없음' });
+      
+      const response = await axios.post(`${API_URL}${ENDPOINTS.POST.DETAIL(id)}/bookmark`, {}, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      
+      const responseData = response.data || {};
+      console.log('postService.toggleBookmark - 응답:', responseData);
+      return responseData;
+    } catch (error) {
       console.error('postService.toggleBookmark - 오류:', error);
-      throw error;
-    });
+      // 오류 발생 시 기본 값 반환
+      return { bookmarked: false, count: 0 };
+    }
   },
   
   /**
@@ -299,7 +325,39 @@ export const postService = {
    * @returns {Promise<Object>} - 최신 게시글, 팔로잉 게시글, 알림 등 홈 데이터
    */
   getHomePageData: async () => {
-    return homeService.getHomePageData();
+    try {
+      console.log('홈페이지 데이터 가져오기 시작');
+      
+      // Promise.all을 사용하여 병렬로 여러 API 호출
+      const [latestPosts, followingPosts, likedPosts, bookmarkedPosts] = await Promise.all([
+        apiGet(`${API_URL}${ENDPOINTS.POST.BASE}`, { page: 0, size: 5 }).catch(() => []),
+        apiGet(`${API_URL}${ENDPOINTS.POST.FOLLOWINGS}`).catch(() => []),
+        apiGet(`${API_URL}${ENDPOINTS.POST.LIKED}`).catch(() => []),
+        apiGet(`${API_URL}${ENDPOINTS.POST.BOOKMARKED}`).catch(() => [])
+      ]);
+      
+      console.log('홈페이지 데이터 가져오기 완료', {
+        최신게시글: latestPosts.length,
+        팔로잉게시글: followingPosts.length,
+        좋아요: likedPosts.length,
+        북마크: bookmarkedPosts.length
+      });
+      
+      return { 
+        latestPosts: latestPosts || [], 
+        followingPosts: followingPosts || [],
+        likedPosts: likedPosts || [],
+        bookmarkedPosts: bookmarkedPosts || []
+      };
+    } catch (error) {
+      console.error('홈페이지 데이터 가져오기 오류:', error);
+      return { 
+        latestPosts: [], 
+        followingPosts: [],
+        likedPosts: [],
+        bookmarkedPosts: []
+      };
+    }
   },
   
   /**

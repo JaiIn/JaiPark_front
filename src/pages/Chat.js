@@ -173,19 +173,46 @@ const Chat = () => {
     const sendMessage = async () => {
         if (!message.trim() || !selectedRoom) return;
         
+        const trimmedMessage = message.trim();
+        const receiverId = selectedRoom.otherUserId;
+        
+        // 메시지 입력창 초기화
+        setMessage('');
+        
+        // 임시 메시지 추가 (즉시 화면에 표시)
+        const tempMessage = {
+            id: `temp-${Date.now()}`,
+            senderId: user.username,
+            receiverId: receiverId,
+            content: trimmedMessage,
+            timestamp: new Date().toISOString(),
+            read: false,
+            chatRoomId: selectedRoom.id,
+            type: 'TEXT',
+            sending: true // 전송 중 상태 표시
+        };
+        
+        // 메시지 목록에 임시 메시지 추가
+        setMessages(prev => [...prev, tempMessage]);
+        
+        // 타이핑 상태 제거
+        sendTypingStatus(false);
+        
         try {
-            const trimmedMessage = message.trim();
-            const receiverId = selectedRoom.otherUserId;
+            // 서버에 메시지 전송
+            const sentMessage = await chatService.sendMessage(receiverId, trimmedMessage);
             
-            setMessage('');
-            
-            // 메시지 전송
-            await chatService.sendMessage(receiverId, trimmedMessage);
-            
-            // 타이핑 상태 제거
-            sendTypingStatus(false);
+            // 임시 메시지를 서버에서 받은 메시지로 교체
+            setMessages(prev => prev.map(msg => 
+                msg.id === tempMessage.id ? sentMessage : msg
+            ));
         } catch (error) {
             console.error('메시지 전송 오류:', error);
+            
+            // 오류 발생 시 임시 메시지에 오류 표시 추가
+            setMessages(prev => prev.map(msg => 
+                msg.id === tempMessage.id ? {...msg, sending: false, error: true} : msg
+            ));
         }
     };
 
@@ -268,6 +295,31 @@ const Chat = () => {
         if (!selectedRoom) return;
         
         chatService.sendTypingStatus(selectedRoom.otherUserId, isTyping);
+    };
+    
+    // 실패한 메시지 재전송
+    const handleResendMessage = async (failedMessage) => {
+        // 기존 오류 메시지를 전송 중 상태로 변경
+        setMessages(prev => prev.map(msg => 
+            msg.id === failedMessage.id ? {...msg, sending: true, error: false} : msg
+        ));
+        
+        try {
+            // 서버에 메시지 재전송
+            const sentMessage = await chatService.sendMessage(failedMessage.receiverId, failedMessage.content);
+            
+            // 임시 메시지를 서버에서 받은 메시지로 교체
+            setMessages(prev => prev.map(msg => 
+                msg.id === failedMessage.id ? sentMessage : msg
+            ));
+        } catch (error) {
+            console.error('메시지 재전송 오류:', error);
+            
+            // 오류 발생 시 임시 메시지에 오류 표시 추가
+            setMessages(prev => prev.map(msg => 
+                msg.id === failedMessage.id ? {...msg, sending: false, error: true} : msg
+            ));
+        }
     };
 
     // 메시지 입력 시 타이핑 상태 전송
@@ -387,7 +439,7 @@ const Chat = () => {
                             <input
                                 type="text"
                                 placeholder="사용자 검색..."
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white"
                                 value={searchUser}
                                 onChange={(e) => setSearchUser(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && searchUsers()}
@@ -605,9 +657,30 @@ const Chat = () => {
                                                     key={msg.id || idx}
                                                     className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
                                                 >
-                                                    <div className={`max-w-[70%] ${isMine ? 'bg-indigo-100' : 'bg-white border'} text-black rounded-lg p-3 shadow-sm`}>
+                                                    <div className={`max-w-[70%] ${isMine ? 
+                                                        msg.error ? 'bg-red-100 border-red-300 border' : 
+                                                        msg.sending ? 'bg-blue-50 border-blue-200 border' : 'bg-indigo-100' 
+                                                        : 'bg-white border'} text-black rounded-lg p-3 shadow-sm`}>
                                                         <div className="text-sm">{msg.content}</div>
                                                         <div className="text-xs text-right mt-1 text-gray-500 flex justify-end items-center">
+                                                            {isMine && msg.sending && (
+                                                                <span className="text-blue-500 mr-1 text-[10px]">전송 중...</span>
+                                                            )}
+                                                            {isMine && msg.error && (
+                                                                <div className="flex items-center mr-1">
+                                                                    <span className="text-red-500 mr-1 text-[10px]">전송 실패</span>
+                                                                    <button
+                                                                        className="text-blue-500 text-[10px] underline"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            // 실패한 메시지 재전송
+                                                                            handleResendMessage(msg);
+                                                                        }}
+                                                                    >
+                                                                        재전송
+                                                                    </button>
+                                                                </div>
+                                                            )}
                                                             {isMine && msg.read && (
                                                                 <span className="text-blue-500 mr-1 text-[10px]">읽음</span>
                                                             )}
@@ -646,7 +719,6 @@ const Chat = () => {
                                         value={message}
                                         onChange={handleMessageChange}
                                         onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                                        style={{ backgroundColor: '#333' }}
                                     />
                                     <button
                                         className="px-4 py-2 bg-indigo-500 text-white rounded-r-lg hover:bg-indigo-600"

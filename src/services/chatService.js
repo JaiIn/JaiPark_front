@@ -99,9 +99,12 @@ export const chatService = {
   // REST API로 메시지 전송
   return axios.post(`${API_URL}/chat/messages`, messageData, getAuthHeader(token))
   .then(response => {
+    // 로그로 응답 확인
+    console.log('메시지 전송 응답:', response.data);
+    
     // 메시지 전송 성공 후 콜백 호출
     chatService.messageCallbacks.forEach(callback => callback(response.data));
-    return response.data;
+    return response.data; // 응답 데이터 반환
       });
   },
   

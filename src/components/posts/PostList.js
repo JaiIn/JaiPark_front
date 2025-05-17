@@ -30,39 +30,12 @@ const PostList = ({
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
-  // 좋아요 및 북마크 상태 관리
-  const [likes, setLikes] = useState(new Set(likedPosts));
-  const [bookmarks, setBookmarks] = useState(new Set(bookmarkedPosts));
-  
-  // props로 전달된 좋아요/북마크 목록이 변경되면 상태 업데이트
-  useEffect(() => {
-    console.log('PostList received likedPosts:', likedPosts);
-    setLikes(new Set(likedPosts));
-  }, [likedPosts]);
-  
-  useEffect(() => {
-    console.log('PostList received bookmarkedPosts:', bookmarkedPosts);
-    setBookmarks(new Set(bookmarkedPosts));
-  }, [bookmarkedPosts]);
-  
   // 좋아요 처리
   const handleLike = useCallback((postId) => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
-    
-    // 좋아요 토글
-    setLikes(prev => {
-      const newLikes = new Set(prev);
-      if (newLikes.has(postId)) {
-        newLikes.delete(postId);
-      } else {
-        newLikes.add(postId);
-      }
-      console.log('PostList - 좋아요 로컬 상태 업데이트:', Array.from(newLikes));
-      return newLikes;
-    });
     
     // 상위 컴포넌트 핸들러 호출
     if (onPostLike) {
@@ -77,18 +50,6 @@ const PostList = ({
       navigate('/login');
       return;
     }
-    
-    // 북마크 토글
-    setBookmarks(prev => {
-      const newBookmarks = new Set(prev);
-      if (newBookmarks.has(postId)) {
-        newBookmarks.delete(postId);
-      } else {
-        newBookmarks.add(postId);
-      }
-      console.log('PostList - 북마크 로컬 상태 업데이트:', Array.from(newBookmarks));
-      return newBookmarks;
-    });
     
     // 상위 컴포넌트 핸들러 호출
     if (onPostBookmark) {
@@ -124,15 +85,15 @@ const PostList = ({
           <div className="space-y-4">
             {posts.map(post => (
               <PostCard
-                key={post.id}
-                post={post}
-                variant={postCardVariant}
-                showActions={isAuthenticated}
-                isLiked={post.isLiked || likes.has(post.id)}
-                isBookmarked={post.isBookmarked || bookmarks.has(post.id)}
-                commentCount={commentCounts[post.id] || post.commentCount || 0}
-                onLikeClick={handleLike}
-                onBookmarkClick={handleBookmark}
+              key={post.id}
+              post={post}
+              variant={postCardVariant}
+              showActions={isAuthenticated}
+              isLiked={likedPosts.includes(post.id)}
+              isBookmarked={bookmarkedPosts.includes(post.id)}
+              commentCount={commentCounts[post.id] || post.commentCount || 0}
+              onLikeClick={handleLike}
+              onBookmarkClick={handleBookmark}
               />
             ))}
           </div>

@@ -1,59 +1,49 @@
-import React, { useEffect, useMemo } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { usePagination } from '../hooks/common/dataHooks';
-import { LoadingSpinner, Alert } from '../components/common/UIComponents';
-import PostList from '../components/posts/PostList';
-import { FaPlus, FaUser } from 'react-icons/fa';
-
-// 커스텀 훅
-import { useHomeData } from '../hooks/post/useHomeData';
-import { usePostInteractions } from '../hooks/post/usePostInteractions';
-
 /**
  * 홈 페이지 컴포넌트
- * 사용자의 팔로잉 게시글 및 최신 게시글을 표시합니다.
+ * - 사용자의 팔로잉 게시글 및 최신 게시글 표시
+ */
+
+import React, { useEffect, useMemo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { FaPlus, FaUser } from 'react-icons/fa';
+
+// 컴포넌트
+import { Card, LoadingSpinner, Alert } from '../components/ui';
+import { PostList } from '../components/post';
+
+// 컨텍스트
+import { useAuth } from '../context/AuthContext';
+
+// 커스텀 훅
+import { usePagination } from '../hooks/common/dataHooks';
+import { useHomeData } from '../hooks/home/useHomeData';
+import { usePostInteractions } from '../hooks/interaction/usePostInteractions';
+
+/**
+ * Home 페이지 컴포넌트
+ * @returns {JSX.Element} 홈 페이지 컴포넌트
  */
 const Home = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   
-  // 홈 데이터 관리 커스텀 훅 사용
-  const { homeData, loading, error, loadHomeData, totalFollowingPosts } = useHomeData();
-  
-  // 게시글 상호작용 커스텀 훅 사용
-  const { 
-    likedPostIds, 
-    bookmarkedPostIds, 
-    commentCounts,
-    handleLike,
-    handleBookmark 
-  } = usePostInteractions(homeData.followingPosts);
-  
-  // 페이지네이션 커스텀 훅 사용
-  const { 
-    currentPage, 
-    totalPages, 
-    setTotalItems, 
-    goToPage 
-  } = usePagination(0, 10);
-  
-  // 초기 데이터 로드
+  // 인증 확인
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
-      return;
     }
-    
-    console.log('홈 화면 데이터 로드 시작');
-    loadHomeData()
-      .then(() => {
-        console.log('홈 화면 데이터 로드 완료');
-      })
-      .catch(err => {
-        console.error('홈 화면 데이터 로드 오류:', err);
-      });
-  }, [isAuthenticated, navigate, loadHomeData]);
+  }, [isAuthenticated, navigate]);
+  
+  // 홈 데이터 로드
+  const { homeData, loading, error, loadHomeData, totalFollowingPosts } = useHomeData();
+  
+  // 게시글 상호작용 (좋아요, 북마크)
+  const { likedPostIds, bookmarkedPostIds, handleLike, handleBookmark } = usePostInteractions(
+    homeData.followingPosts
+  );
+  
+  // 페이지네이션
+  const { currentPage, totalPages, setTotalItems, goToPage } = usePagination(0, 10);
   
   // 총 게시글 수 설정
   useEffect(() => {
@@ -67,17 +57,21 @@ const Home = () => {
   
   // 전체 화면 로딩 중 표시
   if (loading && !homeData.followingPosts.length) {
-    return <LoadingSpinner size="large" fullScreen />;
+    return <LoadingSpinner size="xl" fullScreen message="콘텐츠를 불러오는 중입니다..." />;
   }
 
   return (
     <div className="container mx-auto px-4 py-8 text-black">
       <h1 className="text-3xl font-bold text-black mb-6">{welcomeMessage}</h1>
       
+      {/* 오류 메시지 */}
       {error && (
-        <Alert type="error" dismissible>
-          <p>{error}</p>
-        </Alert>
+        <Alert 
+          type="error" 
+          title="데이터 로드 오류" 
+          message={error}
+          dismissible
+        />
       )}
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -89,7 +83,7 @@ const Home = () => {
             loading={loading}
             emptyMessage="팔로우한 사람들의 게시글이 없습니다."
             emptyAction={
-              <Link to="/posts" className="text-indigo-600 hover:text-indigo-800 font-medium mt-2 inline-block">
+              <Link to="/posts" className="text-indigo-600 hover:text-indigo-800 font-medium">
                 모든 게시글 보기
               </Link>
             }
@@ -102,15 +96,15 @@ const Home = () => {
             onPostBookmark={handleBookmark}
             likedPosts={likedPostIds}
             bookmarkedPosts={bookmarkedPostIds}
-            commentCounts={commentCounts}
           />
         </div>
         
         {/* 사이드바 영역 */}
         <div className="space-y-6">
           {/* 최신 게시글 섹션 */}
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h3 className="text-xl font-bold mb-4 text-gray-800">최신 게시글</h3>
+          <Card
+            header={<h3 className="text-xl font-bold text-gray-800">최신 게시글</h3>}
+          >
             {homeData.latestPosts && homeData.latestPosts.length > 0 ? (
               <ul className="space-y-3">
                 {homeData.latestPosts.map(post => (
@@ -130,14 +124,18 @@ const Home = () => {
             ) : (
               <p className="text-gray-500 text-sm">최신 게시글이 없습니다.</p>
             )}
-            <Link to="/posts" className="text-indigo-600 hover:text-indigo-800 text-sm font-medium mt-4 inline-block">
-              모든 게시글 보기 &rarr;
-            </Link>
-          </div>
+            <div className="mt-4">
+              <Link 
+                to="/posts" 
+                className="text-indigo-600 hover:text-indigo-800 text-sm font-medium inline-block"
+              >
+                모든 게시글 보기 &rarr;
+              </Link>
+            </div>
+          </Card>
           
           {/* 바로가기 링크 섹션 */}
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h3 className="text-xl font-bold mb-4 text-gray-800">바로가기</h3>
+          <Card header={<h3 className="text-xl font-bold text-gray-800">바로가기</h3>}>
             <div className="space-y-2">
               <Link 
                 to="/posts/new"
@@ -152,7 +150,7 @@ const Home = () => {
                 <FaUser className="mr-2" /> 내 프로필
               </Link>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

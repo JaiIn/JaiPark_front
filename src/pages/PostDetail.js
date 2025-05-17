@@ -110,7 +110,17 @@ const PostDetail = () => {
         setActionLoading(true);
         try {
             const data = await postService.toggleLike(id);
-            setLikeStatus({ liked: data.liked, count: data.count });
+            // 낙관적 업데이트를 위해 지금 상태의 반대로 설정
+            const newStatus = !likeStatus.liked;
+            const newCount = newStatus ? likeStatus.count + 1 : Math.max(likeStatus.count - 1, 0);
+            setLikeStatus({ liked: newStatus, count: newCount });
+            
+            // 서버 응답으로 정확한 상태 업데이트
+            if (data && typeof data.liked !== 'undefined' && typeof data.count !== 'undefined') {
+                setLikeStatus({ liked: data.liked, count: data.count });
+            }
+        } catch (error) {
+            console.error('좋아요 처리 오류:', error);
         } finally {
             setActionLoading(false);
         }
@@ -120,7 +130,17 @@ const PostDetail = () => {
         setActionLoading(true);
         try {
             const data = await postService.toggleBookmark(id);
-            setBookmarkStatus({ bookmarked: data.bookmarked, count: data.count });
+            // 낙관적 업데이트를 위해 지금 상태의 반대로 설정
+            const newStatus = !bookmarkStatus.bookmarked;
+            const newCount = newStatus ? bookmarkStatus.count + 1 : Math.max(bookmarkStatus.count - 1, 0);
+            setBookmarkStatus({ bookmarked: newStatus, count: newCount });
+            
+            // 서버 응답으로 정확한 상태 업데이트
+            if (data && typeof data.bookmarked !== 'undefined' && typeof data.count !== 'undefined') {
+                setBookmarkStatus({ bookmarked: data.bookmarked, count: data.count });
+            }
+        } catch (error) {
+            console.error('북마크 처리 오류:', error);
         } finally {
             setActionLoading(false);
         }

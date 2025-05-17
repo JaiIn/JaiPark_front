@@ -1,27 +1,161 @@
-# Cursor AI 기반 커뮤니티 프로젝트
+# JaiPark Frontend Project
 
-간단한 커뮤니티 기능을 구현한 웹 애플리케이션입니다.  
-React와 Tailwind CSS로 UI를 구성하고, Axios를 통해 백엔드 API와 통신합니다.
+## 프로젝트 구조
 
-이 프로젝트의 대부분의 코드 구현은 **Cursor AI**를 활용하여 생성되었습니다.
+이 프로젝트는 다음과 같은 구조로 구성되어 있습니다:
 
----
+```
+src/
+├── api/                  # API 관련 코드
+│   ├── core/             # API 핵심 모듈
+│   │   ├── apiConfig.js  # API 설정 및 엔드포인트
+│   │   └── apiClient.js  # Axios 기반 API 클라이언트
+│   └── services/         # 도메인별 API 서비스
+│       ├── authService.js # 인증 관련 API
+│       └── postService.js # 게시글 관련 API
+├── assets/               # 정적 자산 (이미지, 아이콘 등)
+├── components/           # 재사용 가능한 UI 컴포넌트
+│   ├── ui/               # 기본 UI 컴포넌트
+│   ├── post/             # 게시글 관련 컴포넌트
+│   ├── profile/          # 프로필 관련 컴포넌트
+│   └── layout/           # 레이아웃 컴포넌트
+├── context/              # React Context API를 사용한 전역 상태
+│   └── AuthContext.js    # 인증 상태 관리
+├── hooks/                # 커스텀 React Hooks
+│   ├── common/           # 공통 hook
+│   ├── interaction/      # 상호작용 관련 hook
+│   └── home/             # 홈 화면 관련 hook
+├── pages/                # 애플리케이션 페이지 컴포넌트
+├── routes/               # 라우팅 설정
+├── utils/                # 유틸리티 함수
+│   ├── api.js            # API 유틸리티
+│   └── helpers.js        # 일반 유틸리티 함수
+└── styles/               # 글로벌 스타일
+```
 
-## 기술 스택
+## 아키텍처 패턴
 
-![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
-![Axios](https://img.shields.io/badge/Axios-5A29E4?style=flat&logo=axios&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
+이 프로젝트는 다음과 같은 아키텍처 패턴을 따릅니다:
 
----
+1. **컴포넌트 기반 설계**
+   - 재사용 가능한 컴포넌트로 UI 구성
+   - 기능별로 명확히 분리된 컴포넌트 구조
+
+2. **서비스 계층**
+   - API 통신은 서비스 계층에서 캡슐화
+   - 각 도메인별 서비스 모듈로 분리
+
+3. **커스텀 Hook 패턴**
+   - 비즈니스 로직과 상태 관리를 커스텀 훅으로 분리
+   - 컴포넌트와 로직의 관심사 분리
+
+4. **컨텍스트 기반 상태 관리**
+   - React Context API를 사용한 전역 상태 관리
+   - 필요한 경우 소규모 상태는 컴포넌트 내에서 관리
+
+5. **낙관적 업데이트 패턴**
+   - 좋아요, 북마크 등의 상호작용에 낙관적 업데이트 적용
+   - 사용자 경험 향상을 위한 즉각적인 UI 업데이트
 
 ## 주요 기능
 
-- 회원가입 / 로그인
-- 게시글 작성
-- 댓글 작성
-- 게시글 좋아요
-- 게시글 북마크
+1. **인증 및 사용자 관리**
+   - 로그인/회원가입
+   - 프로필 관리
 
----
+2. **게시글 관리**
+   - 게시글 작성, 조회, 수정, 삭제
+   - 좋아요, 북마크 기능
+   - 댓글 기능
+
+3. **소셜 기능**
+   - 팔로우/팔로잉
+   - 실시간 채팅
+
+4. **알림 시스템**
+   - 실시간 알림
+   - 이메일 알림
+
+## 개발 가이드
+
+### 컴포넌트 개발 규칙
+
+1. **UI 컴포넌트**
+   - `components/ui` 디렉토리에 기본 UI 컴포넌트 배치
+   - 모든 UI 컴포넌트는 독립적이고 스타일 변경 가능하게 설계
+   - PropTypes를 통한 타입 명세 필수
+
+2. **페이지 컴포넌트**
+   - `pages` 디렉토리에 페이지 컴포넌트 배치
+   - 페이지 컴포넌트는 데이터 호출 및 상태 관리 담당
+   - 실제 UI 렌더링은 주로 재사용 컴포넌트 활용
+
+3. **상태 관리**
+   - 컴포넌트 로컬 상태는 useState/useReducer 사용
+   - 전역 상태는 Context API 사용
+   - 복잡한 상태 로직은 커스텀 훅으로 분리
+
+### API 통신 규칙
+
+1. **API 호출**
+   - 직접 axios 호출 대신 apiClient 사용
+   - 각 도메인별 서비스 메서드 활용
+   - 에러 처리 로직 포함
+
+2. **비동기 처리**
+   - async/await 패턴 사용
+   - 로딩 상태 및 에러 상태 관리
+   - 낙관적 업데이트 적용 (필요한 경우)
+
+## 시작하기
+
+### 설치 및 개발 서버 실행
+
+```bash
+# 종속성 설치
+npm install
+
+# 개발 서버 실행
+npm start
+```
+
+### 빌드
+
+```bash
+# 프로덕션 빌드
+npm run build
+```
+
+### 테스트
+
+```bash
+# 테스트 실행
+npm test
+```
+
+## 성능 최적화
+
+- React.memo를 통한 불필요한 리렌더링 방지
+- 지연 로딩 및 코드 분할
+- 이미지 최적화
+- 낙관적 UI 업데이트
+
+## 설계 원칙
+
+1. **단일 책임 원칙 (SRP)**
+   - 각 컴포넌트와 모듈은 단 하나의 책임만 가짐
+
+2. **개방-폐쇄 원칙 (OCP)**
+   - 기존 코드 수정 없이 기능 확장 가능하도록 설계
+
+3. **일관된 코딩 스타일**
+   - ESLint 및 Prettier 설정으로 코드 스타일 통일
+
+4. **모듈성과 재사용성**
+   - 컴포넌트, 훅, 유틸리티 함수의 재사용성 강화
+
+5. **낮은 결합도, 높은 응집도**
+   - 모듈 간 명확한 경계와 인터페이스
+   - 관련 기능은 같은 모듈에 배치
+
+이 README는 프로젝트의 구조와 아키텍처를 이해하는 데 도움이 되는 가이드입니다. 자세한 내용은 코드 및 주석을 참고하세요.
