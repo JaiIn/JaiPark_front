@@ -92,7 +92,14 @@ const Navbar = () => {
                         {isAuthenticated ? (
                             <>
                                 <Link to="/posts" className="text-gray-700 hover:text-indigo-600 font-medium">자유 게시판</Link>
-                                <Link to="/chat" className="text-gray-700 hover:text-indigo-600 font-medium relative">
+                                <Link to="/chat" className="text-gray-700 hover:text-indigo-600 font-medium relative"
+                                    onClick={() => {
+                                        // 채팅 페이지로 이동할 때 알림 초기화
+                                        setUnreadCount(0);
+                                        // 알림 으로 간주되는 채팅 메시지를 읽음 처리
+                                        chatService.markAllMessagesAsRead();
+                                    }}
+                                >
                                     <FaComments className="w-5 h-5" />
                                     {unreadCount > 0 && (
                                         <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">

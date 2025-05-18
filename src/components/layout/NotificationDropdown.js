@@ -53,8 +53,26 @@ const NotificationDropdown = () => {
             return;
         }
         setOpen((prev) => !prev);
+        
+        // 드롭다운을 열 때마다 알림 가져오기
+        fetchNotifications();
+        
+        // 드롭다운이 열리면 모든 알림을 읽음 처리
         if (!open) {
-            fetchNotifications();
+            markAllAsRead();
+        }
+    };
+
+    // 모든 알림 읽음 처리
+    const markAllAsRead = async () => {
+        try {
+            setError(null);
+            await notificationService.markAllAsRead();
+            // 읽음 처리 후 즉시 화면에 반영
+            setUnreadCount(0);
+        } catch (error) {
+            console.error('Failed to mark all notifications as read:', error);
+            setError('알림을 읽음 처리하는데 실패했습니다.');
         }
     };
 
@@ -112,4 +130,4 @@ const NotificationDropdown = () => {
     );
 };
 
-export default NotificationDropdown; 
+export default NotificationDropdown;

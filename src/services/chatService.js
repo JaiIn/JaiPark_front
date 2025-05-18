@@ -115,6 +115,32 @@ export const chatService = {
     console.log('타이핑 상태 전송 (폴링 모드에서는 미구현)');
   },
   
+  // 모든 채팅 메시지 읽음 처리
+  markAllMessagesAsRead: async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return Promise.reject('토큰이 없습니다');
+    
+    try {
+      // 채팅방 목록을 가져와서 모든 채팅방의 읽지 않은 메시지를 읽음 처리
+      const rooms = await chatService.getChatRooms();
+      
+      // 모든 채팅방의 메시지를 읽음 처리
+      const promises = rooms.map(room => {
+        if (room.unreadCount > 0) {
+          return chatService.markAsRead(room.id);
+        }
+        return Promise.resolve();
+      });
+      
+      await Promise.all(promises);
+      
+      return true;
+    } catch (error) {
+      console.error('모든 채팅 메시지 읽음 처리 실패:', error);
+      return false;
+    }
+  },
+  
   // 읽음 상태 전송
   markAsRead: (chatRoomId) => {
     const token = localStorage.getItem('token');

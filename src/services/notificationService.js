@@ -14,6 +14,7 @@ export const notificationService = {
             throw error;
         }
     },
+    
     markAsRead: async (id) => {
         try {
             const token = localStorage.getItem('token');
@@ -26,6 +27,20 @@ export const notificationService = {
             throw error;
         }
     },
+    
+    markAllAsRead: async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+            await notificationApi.markAllAsRead(token);
+        } catch (error) {
+            console.error('Error marking all notifications as read:', error);
+            throw error;
+        }
+    },
+    
     getUnreadCount: async () => {
         try {
             const token = localStorage.getItem('token');
@@ -39,4 +54,4 @@ export const notificationService = {
             throw error;
         }
     },
-}; 
+};
